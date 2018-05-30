@@ -12,10 +12,10 @@ ic_fit <- function(x, y, control = ic_control(), ...) {
     F    <- ecdf(y)
     z    <- qnorm(F(y) * n / (n+1))
 
-    MarginConst <- sum(log(dens$y)) - sum(pnorm(z, log = TRUE))
+    MarginConst <- sum(log(dens$y)) - sum(pnorm(z, log.p = TRUE))
 
     ### Design matrix
-    sc <- mgcv::smooth.construct(mgcv::s(times, bs = "ps"), mcycle, knots = NULL)
+    sc <- mgcv::smooth.construct(mgcv::s(x, bs = "ps"), data.frame("x" = x), knots = NULL)
     B  <- sc$X
     P  <- sc$S[[1]] + diag(diagConst, ncol(B))
 

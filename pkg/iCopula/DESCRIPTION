@@ -4,4 +4,6 @@ Date: 2018-05-30
 Title: Implicit Copula Regression
 Authors@R: c(person(given = "Thorsten", family = "Simon", role = c("aut", "cre"), email = "thorsten.simon@uibk.ac.at", comment = c(ORCID = "0000-0002-3778-7738")))
 Description: Semi-parametric regression using implicit copulas.
+Imports: mgcv
+Suggests: MASS
 License: GPL-2 | GPL-3

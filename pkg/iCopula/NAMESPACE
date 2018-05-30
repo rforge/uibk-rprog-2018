@@ -1,5 +1,8 @@
-# Export
-export(
-  "ic_fit"
-)
+# export
+export("ic_fit")
+
+# importFrom
+importFrom("stats", "density", "dnorm", "ecdf", "lm.fit", "optim",
+           "pnorm", "qnorm")
+
 

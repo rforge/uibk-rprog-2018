@@ -15,13 +15,11 @@ ic_fit(x, y, control = ic_control(), ...)
   \item{control}{A list with control parameter.}
   \item{...}{Not used yet.}
 }
-\details{
-%%  ~~ If necessary, more details than the description above ~~
-}
 \value{A list as returned by \code{optim}.}
 \examples{
 data(mcycle, package = "MASS")
 fit <- ic_fit(mcycle$times, mcycle$accel)
+print(fit)
 }
 \keyword{models}
 \keyword{regression}
