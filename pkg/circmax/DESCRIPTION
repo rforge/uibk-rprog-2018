@@ -6,4 +6,4 @@ Description: Maximum likelihood estimation for a circular response.
 Depends: R (>= 3.4.2)
 License: GPL-2 | GPL-3
 Imports: stats
-Suggests: colorspace
+Suggests: colorspace, circular
