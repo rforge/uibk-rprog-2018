@@ -25,7 +25,9 @@ library(circular)
 library(stats)
 
 # small helper function
-plot_circ <- function(x) plot(as.circular(x), stack = TRUE, col = colorspace::rainbow_hcl(length(x)))
+plot_circ <- function(x){
+   plot(as.circular(x), stack = TRUE, col = colorspace::rainbow_hcl(length(x)))
+}
 
 ## data-generating process
 dgp <- function(n = 100, coef = c(2, 5, 5, 0)) {
