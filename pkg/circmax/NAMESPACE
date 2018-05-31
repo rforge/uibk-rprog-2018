@@ -1,0 +1,5 @@
+S3method(coef,circmax)
+S3method(print,circmax)
+export(circmax)
+export(dvonmises)
+
