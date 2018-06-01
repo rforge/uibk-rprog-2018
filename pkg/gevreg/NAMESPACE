@@ -1,0 +1,14 @@
+import("stats", "SpatialExtremes" , "Formula")
+
+import("stats", "Formula")
+
+export(
+  "gevreg",
+  "gevreg_control",
+  "gevreg_fit"
+)
+
+## methods for gevreg
+S3method("coef", "gevreg")
+S3method("logLik", "gevreg")
+S3method("print", "gevreg")
