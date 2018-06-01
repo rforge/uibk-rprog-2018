@@ -1,5 +1,18 @@
-S3method(coef,circmax)
-S3method(print,circmax)
-export(circmax)
-export(dvonmises)
+## Import functions
+import("stats")
+
+## Export functions
+export("circmax")
+export("circmax_control")
+export("circmax_fit")
+export("dvonmises")
+
+## Methods for circmax
+S3method("coef", "circmax")
+S3method("logLik", "circmax")
+S3method("predict", "circmax")
+S3method("print", "circmax")
+S3method("terms", "circmax")
+S3method("model.frame", "circmax")
+S3method("model.matrix", "circmax")
 
