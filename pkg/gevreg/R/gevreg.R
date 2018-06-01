@@ -163,26 +163,6 @@ coef.gevreg <- function(object, model = c("full", "location", "scale", "shape"),
 }
 
 
-confint.gevreg <- function (object, parm, level = 0.95, ...) 
-{
-  cf <- coef(object)
-  pnames <- names(cf)
-  if (missing(parm)) 
-    parm <- pnames
-  else if (is.numeric(parm)) 
-    parm <- pnames[parm]
-  a <- (1 - level)/2
-  a <- c(a, 1 - a)
-  fac <- qt(a, object$df.residual)
-  pct <- format.perc(a, 3)
-  ci <- array(NA, dim = c(length(parm), 2L), dimnames = list(parm, 
-                                                             pct))
-  ses <- sqrt(diag(vcov(object)))[parm]
-  ci[] <- cf[parm] + ses %o% fac
-  ci
-}
-
-
 print.gevreg <- function(x, digits = max(3, getOption("digits") - 3), ...){
   cat("Smooth spatial extreme value model\n\n")
   cat("Distribution: GEV\n")

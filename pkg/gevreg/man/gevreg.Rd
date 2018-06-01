@@ -10,7 +10,7 @@
 }
 \usage{
 gevreg(formula, data, subset, na.action,
-  model = TRUE, y = TRUE, x = FALSE, z = FALES, v = FALSE,
+  model = TRUE, y = TRUE, x = FALSE, z = FALSE, v = FALSE,
   control = gevreg_control(\dots), \dots)
 
 gevreg_fit(x, y, z = NULL, v = NULL, control)
@@ -19,10 +19,10 @@ gevreg_control(maxit = 5000, start = NULL, ...)
 }
 
 \arguments{
-  \item{formula}{a formula expression of the form \code{y ~ x | z | v} where
+  \item{formula}{a formula expression of the form \code{y ~ x | z | v}  where
     \code{y} is the response and \code{x}, \code{z} and \code{v} are regressor variables
     for the location, scale and shape parameters of the Generalized Extreme value Distribution (GEV). 
-	For details how to set up the formula see details and \code{\link{Formula}}}
+	For details how to set up the formula see details and \code{\link{Formula}}}.
   \item{data}{a data frame containing the covariables used to fit the respons(es). Variables in the formula 
   must occur as column name in data.}
   \item{subset}{an optional vector specifying a subset of observations to be
@@ -41,7 +41,7 @@ gevreg_control(maxit = 5000, start = NULL, ...)
 }
 
 \details{
-\code{circmax}  Fit a GEV distribution simultaneously to a number of observation sites. 
+\code{gevreg}  Fit a GEV distribution simultaneously to a number of observation sites. 
 The spatial component is achieved by maximisng the sum of the single log-likelihoods at the stations. 
 The response y must be either a two or a three columned matrix. If it contains two columns, 
 the first column is supposed to be the location and the second the scale parameter of the GEV. In that case, 
@@ -53,7 +53,10 @@ If 1 is given in either of the formulars right-hand-side, the respective paramet
 }
 
 \value{
-  An object of class \code{"gevreg"}.
+  An object of class \code{gevreg} which inherits from \code{optim} with components: 
+  \item{coefficients}{Either all, or if specified e.g. as location, scale or shape the coefficients of the fitted model for the three GEV parameters are returned. }
+  \item{loglik}{ description }
+  
 }
 
 \examples{
@@ -98,6 +101,6 @@ ssm2 <- gevreg(as.matrix(GEVparam) ~ lon + lat + msd | lon + msd | alt, data = c
 ## comparison of the two models
 AIC(ssm1,ssm2)
 BIC(ssm1,ssm2)
-
+}
 
 \keyword{gev, regression}
