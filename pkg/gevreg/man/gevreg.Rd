@@ -60,11 +60,11 @@ If 1 is given in either of the formulars right-hand-side, the respective paramet
 }
 
 \references{
- 	Blanchet, J. & Lehning, M. (2010). Mapping snow depth return levels: 
-	smooth spatial modeling versus station interpolation. 
-	\emph{Hydrol. Earth Syst. Sci}, \bold{14}, 2527-–2544.
+ 	Blanchet J, Lehning M (2010). Mapping snow depth return levels: smooth spatial modeling versus station interpolation. 
+	\emph{Hydrol. Earth Syst. Sci.}, \bold{14}, 2527--2544.
 	\url{https://www.hydrol-earth-syst-sci.net/14/2527/2010/hess-14-2527-2010.pdf}.
 }
+
 
 \examples{
 library(gevreg)
