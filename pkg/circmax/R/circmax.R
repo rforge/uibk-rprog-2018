@@ -86,7 +86,7 @@ circmax_fit <- function(x, y, z = NULL, control)
     -sum(ll)
   }
   
-  ## Starting values (by default via OLS)
+  ## Starting values (by default zeros)
   if(is.null(control$start)) {
     start <- rep(0, m + p)
   } else {
@@ -185,7 +185,6 @@ predict.circmax <- function(object, newdata = NULL,
   na.action = na.pass, at = 0.5, ...)
 {
   ## Types of prediction
-  ## Response/location are synonymous
   type <- match.arg(type)
 
   ## Obtain model.frame/model.matrix

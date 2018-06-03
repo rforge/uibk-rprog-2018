@@ -3,10 +3,10 @@
 \alias{circmax_fit}
 \alias{circmax_control}
 
-\title{Maximum Likelihood Estimation of a Circular Response}
+\title{Circular Regression with Maximum Likelihood Estimation}
 
 \description{
-  Estimate the parameters of the von Mises distribution by maximum likelihood estimation.
+  Fitting a regression models for a circular response by maximum likelihood estimation.
 }
 \usage{
 circmax(formula, data, subset, na.action,
@@ -40,10 +40,11 @@ circmax_control(maxit = 5000, start = NULL, ...)
 }
 
 \details{
-\code{circmax} estimates the parameters of the the von Mises distribution by maximum likelihood estimation.
+\code{circmax} fits a regression model for a circular response assuming a von Mises distribution.
 
-\code{circmax_fit} is the lower level function where the actual
-fitting takes place.
+
+\code{circmax_fit} is the lower level function where the parameters of the the von Mises distribution 
+are fitted by maximum likelihood estimation.
 }
 
 \value{

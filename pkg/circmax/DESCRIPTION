@@ -7,3 +7,4 @@ Depends: R (>= 3.4.0)
 License: GPL-2 | GPL-3
 Imports: stats, circular, Formula
 Suggests: colorspace
+RoxygenNote: 6.0.1
