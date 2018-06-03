@@ -10,3 +10,4 @@ export(
 S3method("coef", "gevreg")
 S3method("logLik", "gevreg")
 S3method("print", "gevreg")
+S3method("predict", "gevreg")
