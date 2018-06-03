@@ -55,7 +55,8 @@ If 1 is given in either of the formulars right-hand-side, the respective paramet
 \value{
   An object of class \code{gevreg} which inherits from \code{optim} with components: 
   \item{coefficients}{Either all, or if specified e.g. as location, scale or shape the coefficients of the fitted model for the three GEV parameters are returned. }
-  \item{loglik}{ description }
+  \item{loglik}{The maximised log-likelihood value.}
+  \item{TIC}{Takeuchi's information criterion, smaller is better.}
   
 }
 

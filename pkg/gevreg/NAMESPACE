@@ -1,6 +1,4 @@
-import("stats", "SpatialExtremes" , "Formula")
-
-import("stats", "Formula")
+import("stats", "SpatialExtremes" , "Formula", "numDeriv")
 
 export(
   "gevreg",

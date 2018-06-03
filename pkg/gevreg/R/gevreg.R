@@ -113,6 +113,34 @@ gevreg_fit <- function(x, y, z = NULL, v = NULL, control){
     # -sum(ll)
   }
   
+  # define the 'squared' log likelihood function
+  nll2 = function(par) {
+    
+    # scale the coefficients back to original scaling
+    par = par*parscale
+    
+    # define location, scale and shape coefficients
+    loccoeff <- par[1:m]
+    scalecoeff <- par[m + (1:p)]
+    shapecoeff <- par[m + p + (1:q)]
+    
+    # compute the GEV parameters according to the given coefficients
+    locs <- x %*% loccoeff
+    scales <- z %*% scalecoeff
+    shapes <- v %*% shapecoeff
+    
+    # compute the 'squared' log likelihood
+    sum = 0
+    for (k in 1:n) {
+      s   = as.numeric(y[k,!is.na(y[k,])])
+      val = 1 + shapes[k]*((s - locs[k])/scales[k])
+      summand = -n*log(scales[k]) - (1 + 1/shapes[k])*sum(1/2*log(val^2)) - 
+        sum(exp((-1/shapes[k])*1/2*log(val^2)))
+      sum = sum + summand
+    }
+    -sum
+  }
+  
   ## starting values (by default via OLS)
   if(is.null(control$start)) {
     start.loc <- lm.fit(x, y[,1])
@@ -129,11 +157,21 @@ gevreg_fit <- function(x, y, z = NULL, v = NULL, control){
   parscale = 10^(floor(log10(abs(start))))
   start    = start/parscale
   
+  ## if nll(start) is infinite, try to optimize the 'squared' log likelihood
+  if (is.infinite(nll(start))) {
+    cat("\nUsing squared log-likelihood for optimisation")
+    nll.func = nll2
+  } else {
+    nll.func = nll
+  }
+  
   ## optimization
-  opt <- optim(par = start, fn = nll, control = control, hessian=TRUE)
+  opt <- optim(par = start, fn = nll.func, control = control, hessian = TRUE)
+  #opt <- optimx(par = start, fn = nll.func, control = control, hessian = TRUE)
   
   ## enhance labels
   names(opt)[1:2] <- c("coefficients", "loglik")
+  opt$coefficients <- opt$coefficients * parscale # scale back coefficients
   opt$coefficients <- list(
     location = opt$coefficients[1:m],
     scale = opt$coefficients[m + (1:p)],
@@ -143,8 +181,15 @@ gevreg_fit <- function(x, y, z = NULL, v = NULL, control){
   opt$nobs <- n
   opt$df <- m + p + q
   
+  l<- opt$value
+  H<- -opt$hessian
+  J<-jacobian(nll,x=unlist(opt$coefficients),method="Richardson")
+  M<-(solve(H)*as.numeric(J%*%t(J)))
+  opt$TIC<- -2*opt$loglik+2*sum(diag(M))
+  
   return(opt)                                          
 }
+
 
 
 logLik.gevreg <- function(object, ...) {
@@ -169,9 +214,9 @@ print.gevreg <- function(x, digits = max(3, getOption("digits") - 3), ...){
   cat("Estimator: Maximum Likelihood\n")
   cat(sprintf("AIC: %f\n",AIC(x)))
   cat(sprintf("BIC: %f\n",BIC(x)))
+  cat(sprintf("TIC: %f\n",x$TIC))
   
-  #cat("\nCall:", deparse(x$call, width.cutoff = floor(getOption("width") * 0.85)), "", sep = "\n")
-  
+  cat("\nCall:", deparse(x$call, width.cutoff = floor(getOption("width") * 0.85)), "", sep = "\n")
   
   cat("\nCoefficients (location model):\n")
   print.default(format(x$coefficients$location, digits = digits), print.gap = 2, quote = FALSE)
