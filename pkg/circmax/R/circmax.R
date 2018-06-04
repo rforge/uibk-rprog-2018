@@ -88,6 +88,35 @@ circmax_fit <- function(x, y, z = NULL, control)
     ll <- dvonmises(y, mu = mu, kappa = kappa, log = TRUE)
     -sum(ll)
   }
+
+#  ## Negative log-likelihood    
+#  nll <- function(par) {
+#    beta <- par[1:m]
+#    gamma <- par[m + (1:p)]
+#    mu <- x[, 1, drop = FALSE] %*% beta[1] + 2 * atan(x[, -1, drop = FALSE] %*% beta[-1])
+#    kappa <- exp(z %*% gamma)
+#      if (any(mu < 0 | mu > 2*pi)){
+#        return(10^9)
+#      } else {
+#        ll <- dvonmises(y, mu = mu, kappa = kappa, log = TRUE)
+#        -sum(ll)
+#      }
+#  }
+#
+#  ## Negative log-likelihood    
+#  nll <- function(par) {
+#    beta <- par[1:m]
+#    gamma <- par[m + (1:p)]
+#    mu <- x[, 1, drop = FALSE] %*% beta[1] + 2 * atan(x[, -1, drop = FALSE] %*% beta[-1])
+#    kappa <- exp(z %*% gamma)
+#    print(par[1])
+#      if (par[1] < 0 | par[1] > 2*pi){
+#        return(10^9)
+#      } else {
+#        ll <- dvonmises(y, mu = mu, kappa = kappa, log = TRUE)
+#        -sum(ll)
+#      }
+#  }
   
   ## Starting values (by default zeros)
   if(is.null(control$start)) {

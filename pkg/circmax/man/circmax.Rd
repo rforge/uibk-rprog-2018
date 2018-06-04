@@ -89,5 +89,8 @@ x <- d$x1
 ## Maximum Likelihood estimation (inside package)
 (m1 <- circmax(y ~ x1 | x2, data = d))
 (predict(m1))
+
+(m2 <- circmax(y ~ x1, data = d))
+(predict(m2))
 }
 \keyword{circular, regression}
