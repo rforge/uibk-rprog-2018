@@ -35,6 +35,11 @@ circmax <- function(formula, data, subset, na.action,
   X <- model.matrix(mtX, mf)
   Z <- model.matrix(mtZ, mf)
 
+  ## Convert response to values between 0 and 2pi
+  Y <- invisible(circular::as.circular(Y, zero = 0, rotation = "counter", template = "none", type = "angles", 
+    units = "radians", modulo = "2pi", info = FALSE))
+  Y <- as.numeric(Y)
+
   ## Sanity check
   if(length(Y) < 1) stop("empty model")
   n <- length(Y)
@@ -205,6 +210,13 @@ predict.circmax <- function(object, newdata = NULL,
   if(type != "scale") location <- drop(X[, 1, drop = FALSE] %*% object$coefficients$location[1] 
                                        + 2 * atan(X[, -1, drop = FALSE] %*% object$coefficients$location[-1]))
   if(type != "location") scale <- exp(drop(Z %*% object$coefficients$scale))
+browser()
+  ## Convert location to values between 0 and 2pi
+  if (type != "scale") {
+      location <- invisible(circular::as.circular(location, zero = 0, rotation = "counter", template = "none", type = "angles", 
+        units = "radians", modulo = "2pi", info = FALSE))
+      location <- as.numeric(location)
+  }
 
   ## Compute result
   rval <- switch(type,

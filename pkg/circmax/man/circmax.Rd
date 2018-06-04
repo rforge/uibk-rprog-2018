@@ -22,7 +22,7 @@ circmax_control(maxit = 5000, start = NULL, ...)
     \code{y} is the response and \code{x} and \code{z} are regressor variables
     for the location and the scale (density) of the von Mises distribution.}
   \item{data}{an optional data frame containing the variables occurring in the
-    formulas.}
+    formulas; y has to be given in radians.}
   \item{subset}{an optional vector specifying a subset of observations to be
     used for fitting.}
   \item{na.action}{a function which indicates what should happen when the data
@@ -32,7 +32,7 @@ circmax_control(maxit = 5000, start = NULL, ...)
   \item{x, y}{for \code{circmax}: logical. If \code{TRUE} the model matrix and
     response vector used for fitting are returned as components of the returned value.
     For \code{circmax.fit}: \code{x} is a design matrix with regressors for the
-    location and \code{y} is a vector of observations.}
+    location and \code{y} is a vector of observations given in radians.}
   \item{z}{a design matrix with regressors for the scale.}
   \item{\dots}{arguments to be used to form the default \code{control} argument
     if it is not supplied directly.}
@@ -88,5 +88,6 @@ x <- d$x1
 
 ## Maximum Likelihood estimation (inside package)
 (m1 <- circmax(y ~ x1 | x2, data = d))
+(predict(m1))
 }
 \keyword{circular, regression}
