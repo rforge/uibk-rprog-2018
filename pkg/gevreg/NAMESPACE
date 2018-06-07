@@ -1,5 +1,4 @@
-import("stats", "SpatialExtremes" , "Formula", "numDeriv")
-
+import("stats", "Formula", "numDeriv")
 export(
   "gevreg",
   "gevreg_control",
@@ -8,6 +7,8 @@ export(
 
 ## methods for gevreg
 S3method("coef", "gevreg")
+S3method("vcov", "gevreg")
 S3method("logLik", "gevreg")
 S3method("print", "gevreg")
-S3method("predict", "gevreg")
+
+

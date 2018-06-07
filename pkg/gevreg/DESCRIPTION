@@ -1,11 +1,13 @@
 Package: gevreg
-Version: 0.1-0
-Date: 2018-06-01
-Title: Fit a GEV Distribution via Smooth Functions in Space
+Version: 0.1-1
+Date: 2018-06-06
+Title: Fit a GEV Distribution
 Authors@R: c(person("Harald", "Schellander", role = c("aut", "cre"),
                      email = "harald.schellander@zamg.ac.at"))
 Author: Harald Schellander [aut, cre]
 Maintainer: Harald Schellander <harald.schellander@zamg.ac.at>
-Depends: R (>= 3.1.0), Formula, SpatialExtremes, stats, numDeriv
-Description: Fit a GEV distribution simultaneously to a number of observation sites by maximizing the sum of the log-likelihood over all stations.
-License: GPL (>= 2)
+Depends: R (>= 3.4.0)
+Imports: stats, Formula, numDeriv
+Suggests: extRemes
+Description: Fit a GEV distribution via maximum likelihood.
+License: GPL-2 | GPL-3

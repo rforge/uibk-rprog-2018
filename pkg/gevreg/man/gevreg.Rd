@@ -3,10 +3,10 @@
 \alias{gevreg_fit}
 \alias{gevreg_control}
 
-\title{Fit a GEV distribution via smooth functions in space}
+\title{Fit a GEV distribution}
 
 \description{
-  Estimate the parameters of the GEV distribution for a number of stations simultaneously.
+  Estimate the parameters of the GEV distribution using maximum likelihood.
 }
 \usage{
 gevreg(formula, data, subset, na.action,
@@ -15,7 +15,7 @@ gevreg(formula, data, subset, na.action,
 
 gevreg_fit(x, y, z = NULL, v = NULL, control)
 
-gevreg_control(maxit = 5000, start = NULL, ...)
+gevreg_control(maxit = 5000, start = NULL, grad = TRUE, hessian = TRUE, ...)
 }
 
 \arguments{
@@ -38,6 +38,9 @@ gevreg_control(maxit = 5000, start = NULL, ...)
   \item{\dots}{arguments to be used to form the default \code{control} argument
     if it is not supplied directly.}
   \item{control, maxit, start}{a list of control parameters passed to \code{\link{optim}} .}
+  
+  \item{grad}{should a gradient-based method used for optimization.}
+  \item{hessian}{should a hessian be computed during the optimaztion process. Possible values are \code{"none"}, \code{"optim"} or \code{"numderic"}, which is the default.}
 }
 
 \details{
@@ -56,7 +59,7 @@ If 1 is given in either of the formulars right-hand-side, the respective paramet
   An object of class \code{gevreg} which inherits from \code{optim} with components: 
   \item{coefficients}{Either all, or if specified e.g. as location, scale or shape the coefficients of the fitted model for the three GEV parameters are returned. }
   \item{loglik}{The maximised log-likelihood value.}
-  \item{TIC}{Takeuchi's information criterion, smaller is better.}
+  
   
 }
 
@@ -68,47 +71,29 @@ If 1 is given in either of the formulars right-hand-side, the respective paramet
 
 
 \examples{
-library(gevreg)
+data("gevregdata")
+d <- gevregdata
 
-## generate random data
-set.seed(2018-05-28)
-n <- 50 # years
-N <- 30 # stations
-hs <- covar <- data.frame()
-locs <- 20:50
-scales <- 5:19
-shapes <- seq(-0.3,0.3,0.02)
-lons <- seq(12,19,0.1)
-lats <- seq(44,48,0.1)
-alts <- seq(120,3798,1)
-for(i in 1:N){
-  # snow depth
-  loc <- sample(locs,1)
-  scale <- sample(scales,1)
-  shape <- sample(shapes,1)
-  hs <- rbind(hs,rgev(n,loc=loc,scale=scale,shape=shape))
-  
-  # lon, lat, alt, msd
-  lon <- sample(lons,1)
-  lat <- sample(lats,1)
-  alt <- sample(alts,1)
-  msd <- mean(0.5*rgev(n,loc=loc,scale=scale,shape=shape))
-  covar <- rbind(covar,data.frame(lon=lon,lat=lat,alt=alt,msd=msd))
-}
-names(hs) <- seq(1950,1950+n-1)
+## Fit GEV to the snow depths of the first station in the dataset
+d1 <- d[which(d$station == 1),]
+gevreg(formula = hs ~ 1, data = d1)
 
+## this is equivalent
+gevreg(formula = hs ~ 1, data = d, subset = station == 1)
 
-## generate "observed" GEV parameters
-GEVparam <- t(apply(hs,1,gevmle))
- 
+## print output in standard or extended format
+m <- gevreg(formula = hs ~ 1, data = d, subset = station == 2)
+print(m)
+print(m, ext = TRUE)
 
-## Fit spatial GEV models
-ssm1 <- gevreg(as.matrix(GEVparam) ~ lon + lat + alt | lon + alt | alt, data = covar)
-ssm2 <- gevreg(as.matrix(GEVparam) ~ lon + lat + msd | lon + msd | alt, data = covar)
+## the hessian is computed by default 
+m <- gevreg(hs ~ 1, d, station == 3)
+m$hessian
 
-## comparison of the two models
-AIC(ssm1,ssm2)
-BIC(ssm1,ssm2)
+## but you could also use the numderiv package after the optimzation
+mnum <- gevreg(hs ~ 1, d, station == 3, hessian = "numderiv")
+mnum$hessian
+
 }
 
 \keyword{gev, regression}
