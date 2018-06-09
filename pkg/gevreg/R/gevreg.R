@@ -14,10 +14,19 @@ gevreg <- function(formula, data, subset, na.action,
   ## formula
   oformula <- as.formula(formula)
   formula <- as.Formula(formula)
+  a <- attr(terms(formula),"term.labels")
   if(length(formula)[2L] == 1L) {
-    formula <- as.Formula(formula(formula), ~ 1|1)
+    if(length(a) == 0){
+      formula <- as.Formula(formula(formula), ~ 1|1)
+      
+      # FIXIT would be nice to use a variable to update formula
+    } else if (a == "station") { 
+      formula <- update(formula(formula), . ~ . -1)
+      formula <- as.Formula(formula(formula), ~ -1 + station | -1 + station)
+    } 
   } else if(length(formula)[2L] == 2L) {
-    formula <- as.Formula(formula(formula), ~ 1)
+      formula <- as.Formula(formula(formula), ~ 1)
+    
   } else {
     if(length(formula)[2L] > 3L) {
       formula <- Formula(formula(formula, rhs = 1L:3L))
@@ -26,16 +35,14 @@ gevreg <- function(formula, data, subset, na.action,
   }
   mf$formula <- formula
   
+  ## data
+  n.stats <- length(levels(data$station))
+  
   ## evaluate model.frame
   mf[[1L]] <- as.name("model.frame")
   mf <- eval(mf, parent.frame())  
   
   ## extract terms, model matrix, response
-  # allvars <- get_all_vars(formula,data=data)
-  # i <- which(unlist(lapply(allvars,is.factor)))
-  # n.stats <<- length(levels(allvars[,i]))
-  #if (length(levels(allvars[,i])) < 2) stop("data must consist of at least 2 stations")
-  
   mt <- terms(formula, data = data)
   mtX <- terms(formula, data = data, rhs = 1L)
   mtZ <- delete.response(terms(formula, data = data, rhs = 2L))
@@ -50,13 +57,7 @@ gevreg <- function(formula, data, subset, na.action,
   n <- length(Y)
   
   ## call the actual workhorse
-  # for(s in unique(d$station)){
-  #   i <- which(d$station==s)
-  #   rval <- gevreg_fit(X[i,, drop = FALSE], Y[i], Z[i,, drop = FALSE], V[i,, drop = FALSE], control)
-  #   print.default(format(rval$coefficients, digits = 2), print.gap = 2, quote = FALSE)
-  # }
-  
-  rval <- gevreg_fit(X, Y, Z, V, control)
+  rval <- gevreg_fit(X, Y, Z, V, n.stats, control)
 
   ## further model information
   rval$call <- cl
@@ -81,13 +82,9 @@ gevreg_control <- function(maxit = 5000, start = NULL, grad = TRUE, hessian = TR
     list(maxit = maxit, start = start, grad = grad, hessian = hessian),
     list(...)
   )
-  #print(paste("hessian:",ctrl$hessian))
   if(is.null(ctrl$method)) {
     ctrl$method <- if(grad) "BFGS" else "Nelder-Mead"
   }
-  #print(paste("method:",ctrl$method))
-  #print(paste("grad:",ctrl$grad))
-  #print(paste("maxit:",ctrl$maxit))
   if(!is.null(ctrl$fnscale)) warning("fnscale must not be modified")
   ctrl$fnscale <- 1
   if(is.null(ctrl$reltol)) ctrl$reltol <- .Machine$double.eps^(1/1.2)
@@ -95,7 +92,7 @@ gevreg_control <- function(maxit = 5000, start = NULL, grad = TRUE, hessian = TR
 }
 
 
-gevreg_fit <- function(x, y, z = NULL, v = NULL, control){
+gevreg_fit <- function(x, y, z = NULL, v = NULL, n.stats, control){
   
   ## dimensions
   n <- length(y)
@@ -106,7 +103,7 @@ gevreg_fit <- function(x, y, z = NULL, v = NULL, control){
   q <- ncol(v)
   stopifnot(n == nrow(x), n == nrow(z), n == nrow(v))
   
-  nll = function(par, dat = NULL) {
+  nll <- function(par, dat = NULL) {
     
     # scale the coefficients back to original scaling
     #par = par*parscale
@@ -115,9 +112,6 @@ gevreg_fit <- function(x, y, z = NULL, v = NULL, control){
     loccoeff <- par[1:m]
     scalecoeff <- par[m + (1:p)]
     shapecoeff <- par[m + p + (1:q)]
-    #loccoeff <- rep(par[1],3)
-    #scalecoeff <- rep(par[2],3)
-    #shapecoeff <- rep(par[3],3)
     
     # compute the GEV parameters according to the given coefficients
     locs <- x %*% loccoeff
@@ -127,8 +121,6 @@ gevreg_fit <- function(x, y, z = NULL, v = NULL, control){
     # compute negative log likelihood
     - sum(dgev(y, loc = locs, scale = scales, shape = shapes, log = TRUE))
   }
-  
-  
   
   ## negative gradient 
   ngr <- function(par, dat) {
@@ -169,10 +161,6 @@ gevreg_fit <- function(x, y, z = NULL, v = NULL, control){
   meth <- control$method
   control$grad <- control$hessian <- control$method <- NULL
   
-  #n.stats <- 3
-  #allvars <- get_all_vars(formula,data=data)
-  #i <- which(unlist(lapply(allvars,is.factor)))
-  #n.stats <- length(levels(allvars[,i]))
   ## starting values (by default via OLS)
   if(is.null(control$start)) {
     #start.loc <- glm.fit(x, y[,1])
@@ -182,8 +170,7 @@ gevreg_fit <- function(x, y, z = NULL, v = NULL, control){
     start.scale <- log( sqrt(6 * var(y, na.rm = TRUE))/pi )
     start.loc <- mean(y, na.rm = TRUE) - 0.58 * exp(start.scale)
     start.shape <- 0
-    start <- c(start.loc,start.scale,start.shape)
-    #start <- rep(start, n.stats)
+    start <- c(rep(start.loc,n.stats),rep(start.scale,n.stats),rep(start.shape,n.stats))
   } else {
     start <- control$start
     stopifnot(length(start) == m + p + q)
@@ -243,9 +230,8 @@ gevreg_fit <- function(x, y, z = NULL, v = NULL, control){
 }
 
 
-
 logLik.gevreg <- function(object, ...) {
-  structure(object$loglik, df = object$df, class = "gevreg")
+  structure(object$loglik, df = object$df, class = "logLik")
 }
 
 coef.gevreg <- function(object, model = c("full", "location", "scale", "shape"), ...) {
@@ -262,13 +248,13 @@ coef.gevreg <- function(object, model = c("full", "location", "scale", "shape"),
 
 print.gevreg <- function(x, digits = max(3, getOption("digits") - 3), ext = FALSE, ...){
   if (!ext){
-    cf <- c(loc=x$coefficients$location,
+    cf <- cbind(loc=x$coefficients$location,
             scale=exp(x$coefficients$scale),
             shape=x$coefficients$shape)
+    rownames(cf) <- paste0("station",1:nrow(cf))
     print.default(format(cf, digits = digits), print.gap = 2, quote = FALSE)
   } else {
-    cat("Distribution parameters\n\n")
-    cat("Distribution: GEV\n")
+    cat("Maximum Likelihood GEV Fitting\n\n")
     cat("Estimator: Maximum Likelihood\n")
     cat(sprintf("AIC: %f\n",AIC(x)))
     cat(sprintf("BIC: %f\n",BIC(x)))
@@ -279,11 +265,14 @@ print.gevreg <- function(x, digits = max(3, getOption("digits") - 3), ext = FALS
     cat("\nConvergence:", ifelse(x$convergence == 0, "successful", paste("not successful: code = ",x$convergence, "with", x$counts, "function evaluations")), "", sep = "\n")
     
     cat("\nCoefficients (location model):\n")
-    print.default(format(x$coefficients$location, digits = digits), print.gap = 2, quote = FALSE)
+    locs <- x$coefficients$location; names(locs) <- paste0("station_",1:length(locs))
+    print.default(format(locs, digits = digits), print.gap = 2, quote = FALSE)
     cat("\nCoefficients (scale model with log link):\n")
-    print.default(format(exp(x$coefficients$scale), digits = digits), print.gap = 2, quote = FALSE)
+    scales <- x$coefficients$scale; names(scales) <- paste0("station_",1:length(scales))
+    print.default(format(exp(scales), digits = digits), print.gap = 2, quote = FALSE)
     cat("\nCoefficients (shape model):\n")
-    print.default(format(x$coefficients$shape, digits = digits), print.gap = 2, quote = FALSE)
+    shapes <- x$coefficients$shape; names(shapes) <- paste0("station_",1:length(shapes))
+    print.default(format(shapes, digits = digits), print.gap = 2, quote = FALSE)
     cat(sprintf("\nLog-likelihood: %s on %s Df\n", format(x$loglik, digits = digits), x$df))
   }
   invisible(x)
@@ -298,16 +287,19 @@ vcov.gevreg <- function(object, model = c("full", "location", "scale", "shape"),
   model <-  match.arg(model)
   switch(model,
          "location" = {
-           vc[seq.int(length.out = k), seq.int(length.out = k), drop = FALSE]
+           vc <- vc[seq.int(length.out = k), seq.int(length.out = k), drop = FALSE]
+           #colnames(vc) <- rownames(vc) <- names(object$coefficients$location)
+           colnames(vc) <- rownames(vc) <- paste0("(location)_station",1:3)
+           vc
          },
          "scale" = {
            vc <- vc[seq.int(length.out = m) + k, seq.int(length.out = m) + k, drop = FALSE]
-           colnames(vc) <- rownames(vc) <- names(object$coefficients$scale)
            vc
          },
          "shape" = {
            vc <- vc[seq.int(length.out = n) + k, seq.int(length.out = n) + k, drop = FALSE]
-           colnames(vc) <- rownames(vc) <- names(object$coefficients$shape)
+           #colnames(vc) <- rownames(vc) <- names(object$coefficients$shape)
+           #colnames(vc) <- rownames(vc) <- paste0("(scale)_station",1:3)
            vc
          },
          "full" = {
@@ -334,6 +326,8 @@ dgev <- function (x, loc = 0, scale = 1, shape = 0, log = FALSE)
   if (!log) dns <- exp(dns)
   return(dns)
 }
+
+
 
 
 # terms.gevreg <- function(x, model = c("location", "scale", "shape", "full"), ...) x$terms[[match.arg(model)]]
