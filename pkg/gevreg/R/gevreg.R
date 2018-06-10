@@ -119,7 +119,7 @@ gevreg_fit <- function(x, y, z = NULL, v = NULL, n.stats, control){
     shapes <- v %*% shapecoeff
     
     # compute negative log likelihood
-    - sum(dgev(y, loc = locs, scale = scales, shape = shapes, log = TRUE))
+    - sum(dgev.gevreg(y, loc = locs, scale = scales, shape = shapes, log = TRUE))
   }
   
   ## negative gradient 
@@ -308,7 +308,8 @@ vcov.gevreg <- function(object, model = c("full", "location", "scale", "shape"),
   )
 }
 
-dgev <- function (x, loc = 0, scale = 1, shape = 0, log = FALSE) 
+## need pgev and qgev as vector version as well
+dgev.gevreg <- function (x, loc = 0, scale = 1, shape = 0, log = FALSE) 
 {
   if (min(scale) <= 0) 
     stop("invalid scale parameter")
@@ -330,81 +331,78 @@ dgev <- function (x, loc = 0, scale = 1, shape = 0, log = FALSE)
 
 
 
-# terms.gevreg <- function(x, model = c("location", "scale", "shape", "full"), ...) x$terms[[match.arg(model)]]
-# 
-# model.frame.gevreg <- function(formula, ...) {
-#   if(!is.null(formula$model)) return(formula$model)
-#   formula$terms <- formula$terms$full
-#   formula$call$formula <- formula$formula <- formula(formula$terms)
-#   NextMethod()
-# } 
-# 
-# model.matrix.gevreg <- function(object, model = c("location", "scale", "shape"), ...) {
-#   model <- match.arg(model)
-#   rval <- if(!is.null(object$x[[model]])) object$x[[model]]
-#   else model.matrix(object$terms[[model]], model.frame(object), contrasts = object$contrasts[[model]])
-#   return(rval)
-# }
-# 
-# predict.gevreg <- function(object, newdata = NULL,
-#                            type = c("response", "location", "scale", "shape", "parameter", "probability", "quantile"),
-#                            na.action = na.pass, at = 0.5, ...)
-# {
-#   ## types of prediction
-#   ## response/location are synonymous
-#   type <- match.arg(type)
-#   if(type == "location") type <- "response"
-#   
-#   ## obtain model.frame/model.matrix
-#   tnam <- switch(type,
-#                  "response" = "location",
-#                  "scale" = "scale",
-#                  "shape" = "shape",
-#                  "full")  
-#   if(is.null(newdata)) {
-#     X <- model.matrix(object, model = "location")
-#     Z <- model.matrix(object, model = "scale")
-#     V <- model.matrix(object, model = "shape")
-#   } else {
-#     mf <- model.frame(delete.response(object$terms[[tnam]]), newdata, na.action = na.action, xlev = object$levels[[tnam]])
-#     if(type != "scale") X <- model.matrix(delete.response(object$terms$location), mf, contrasts = object$contrasts$location)
-#     if(type != "response") {
-#       Z <- model.matrix(object$terms$scale, mf, contrasts = object$contrasts$scale)
-#       V <- model.matrix(object$terms$shape, mf, contrasts = object$contrasts$shape)
-#     }
-#   }
-#   
-#   ## predicted parameters
-#   if(type != "scale") location <- drop(X %*% object$coefficients$location)
-#   if(type != "response") {
-#     scale <- exp( drop(Z %*% object$coefficients$scale) )
-#     shape <- drop(V %*% object$coefficients$shape)
-#   }
-#   
-#   ## compute result
-#   rval <- switch(type,
-#                  "response" = location,
-#                  "scale" = scale,
-#                  "shape" = shape,
-#                  "parameter" = data.frame(location, scale, shape),
-#                  "probability" = pgev(at, loc = location, scale = scale, shape = shape),
-#                  "quantile" = pmax(0, qgev(at, loc = location, scale = scale, shape = shape))
-#   )
-#   return(rval)
-# }
-# 
-# 
-# 
-# 
-# 
-# residuals.gevreg <- function(object, type = c("standardized", "pearson", "response"), ...) {
-#   if(match.arg(type) == "response") {
-#     object$residuals 
-#   } else {
-#     object$residuals/object$fitted.values$scale
-#   }
-# }
-# #summary.gevreg
-# #print.summary.gevreg
+terms.gevreg <- function(x, model = c("location", "scale", "shape", "full"), ...) x$terms[[match.arg(model)]]
+
+model.frame.gevreg <- function(formula, ...) {
+  if(!is.null(formula$model)) return(formula$model)
+  formula$terms <- formula$terms$full
+  formula$call$formula <- formula$formula <- formula(formula$terms)
+  NextMethod()
+}
+
+model.matrix.gevreg <- function(object, model = c("location", "scale", "shape"), ...) {
+  model <- match.arg(model)
+  rval <- if(!is.null(object$x[[model]])) object$x[[model]]
+  else model.matrix(object$terms[[model]], model.frame(object), contrasts = object$contrasts[[model]])
+  return(rval)
+}
+
+predict.gevreg <- function(object, newdata = NULL,
+                           type = c("response", "location", "scale", "shape", "parameter", "probability", "quantile"),
+                           na.action = na.pass, at = 0.5, ...)
+{
+  ## types of prediction
+  ## response/location are synonymous
+  type <- match.arg(type)
+  if(type == "location") type <- "response"
+
+  ## obtain model.frame/model.matrix
+  tnam <- switch(type,
+                 "response" = "location",
+                 "scale" = "scale",
+                 "shape" = "shape",
+                 "full")
+  if(is.null(newdata)) {
+    X <- model.matrix(object, model = "location")
+    Z <- model.matrix(object, model = "scale")
+    V <- model.matrix(object, model = "shape")
+  } else {
+    mf <- model.frame(delete.response(object$terms[[tnam]]), newdata, na.action = na.action, xlev = object$levels[[tnam]])
+    if(type != "scale") X <- model.matrix(delete.response(object$terms$location), mf, contrasts = object$contrasts$location)
+    if(type != "response") {
+      Z <- model.matrix(object$terms$scale, mf, contrasts = object$contrasts$scale)
+      V <- model.matrix(object$terms$shape, mf, contrasts = object$contrasts$shape)
+    }
+  }
+
+  ## predicted parameters
+  if(type != "scale") location <- drop(X %*% object$coefficients$location)
+  if(type != "response") {
+    scale <- exp( drop(Z %*% object$coefficients$scale) )
+    shape <- drop(V %*% object$coefficients$shape)
+  }
+
+  ## compute result
+  rval <- switch(type,
+                 "response" = location,
+                 "scale" = scale,
+                 "shape" = shape,
+                 "parameter" = data.frame(location, scale, shape),
+                 "probability" = pgev(at, loc = location, scale = scale, shape = shape),
+                 "quantile" = pmax(0, qgev(at, loc = location, scale = scale, shape = shape))
+  )
+  return(rval)
+}
+
+
+residuals.gevreg <- function(object, type = c("standardized", "pearson", "response"), ...) {
+  if(match.arg(type) == "response") {
+    object$residuals
+  } else {
+    object$residuals/object$fitted.values$scale
+  }
+}
+#summary.gevreg
+#print.summary.gevreg
 
 
