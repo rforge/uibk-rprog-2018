@@ -20,12 +20,18 @@ gevreg <- function(formula, data, subset, na.action,
       formula <- as.Formula(formula(formula), ~ 1|1)
       
       # FIXIT would be nice to use a variable to update formula
-    } else if (a == "station") { 
+    } else if (a[1] == "station") { 
       formula <- update(formula(formula), . ~ . -1)
       formula <- as.Formula(formula(formula), ~ -1 + station | -1 + station)
-    } 
+    } else {
+      formula <- update(formula(formula), . ~ . -1)
+      formula <- as.Formula(formula(formula), ~ 1 | 1 )
+    }
   } else if(length(formula)[2L] == 2L) {
-      formula <- as.Formula(formula(formula), ~ 1)
+    
+    formula.l <- formula(formula,rhs=0)
+    formula <- eval(parse(text=paste0(formula.l,"-1 + ",a)))
+    formula <- as.Formula(formula(formula), ~ 1)
     
   } else {
     if(length(formula)[2L] > 3L) {
@@ -35,8 +41,17 @@ gevreg <- function(formula, data, subset, na.action,
   }
   mf$formula <- formula
   
+  #print(formula)
+  
   ## data
+  if(!is.factor(data$station)) stop("station column must be a factor")
   n.stats <- length(levels(data$station))
+  
+  ## subset
+  if(m[3] != 0){
+    data$station <- as.numeric(data$station)
+    n.stats <- 1
+  }
   
   ## evaluate model.frame
   mf[[1L]] <- as.name("model.frame")
@@ -126,7 +141,7 @@ gevreg_fit <- function(x, y, z = NULL, v = NULL, n.stats, control){
   ngr <- function(par, dat) {
    
     ## numerical
-    return(grad(nll, par)) #*parscale
+    return(grad(nll, par)) #*parscale)) #
 
     ## analytical (adapted from mev::gev.score)
     loccoeff <- par[1:m]
@@ -163,24 +178,31 @@ gevreg_fit <- function(x, y, z = NULL, v = NULL, n.stats, control){
   
   ## starting values (by default via OLS)
   if(is.null(control$start)) {
-    #start.loc <- glm.fit(x, y[,1])
-    #start.scale <- glm.fit(z, log( y[,2] ))
-    #start.shape <- glm.fit(v, y[,3])
+    #start.loc <- glm.fit(x, y)
+    #start.scale <- glm.fit(z, log( y ))
+    #start.shape <- glm.fit(v, y)
     #start <- c(start.loc$coefficients,start.scale$coefficients,start.shape$coefficients)
-    start.scale <- log( sqrt(6 * var(y, na.rm = TRUE))/pi )
-    start.loc <- mean(y, na.rm = TRUE) - 0.58 * exp(start.scale)
+    #start <- c(rep(start.loc$coefficients,n.stats),rep(start.scale$coefficients,n.stats),rep(start.shape$coefficients,n.stats))
+    #start.scale <- log( sqrt(6 * var(y, na.rm = TRUE))/pi )
+    #start.loc <- mean(y, na.rm = TRUE) - 0.58 * exp(start.scale)
+    start.scale <- sqrt(6 * var(y, na.rm = TRUE))/pi
+    start.loc <- mean(y, na.rm = TRUE) - 0.58 * start.scale
     start.shape <- 0
-    start <- c(rep(start.loc,n.stats),rep(start.scale,n.stats),rep(start.shape,n.stats))
+    start <- c(rep(start.loc,n.stats),log(rep(start.scale,n.stats)),rep(start.shape,n.stats))
   } else {
     start <- control$start
     stopifnot(length(start) == m + p + q)
+    #if(length(start) != m + p + q) stop(cat("Wrong number of starting values: you need",m + p + q,"but provided",length(start)))
+    #print(paste(length(start),m+p+q))
   }
   control$start <- NULL
- 
+  #cat("\nstarting values: ",start,sep = "\t")
+  
   ## rescale starting values for more stable optimization results
   #parscale = 10^(floor(log10(abs(start))))
   #start    = start/parscale
-  #print(paste("rescaled:",start))
+  #start[is.na(start)] <- 0
+  #cat("\nrescaled starting values: ",start,sep = "\t")
   
   ## optimization
   opt <- if(grad) {
@@ -230,6 +252,7 @@ gevreg_fit <- function(x, y, z = NULL, v = NULL, n.stats, control){
 }
 
 
+
 logLik.gevreg <- function(object, ...) {
   structure(object$loglik, df = object$df, class = "logLik")
 }
@@ -252,7 +275,7 @@ print.gevreg <- function(x, digits = max(3, getOption("digits") - 3), ext = FALS
             scale=exp(x$coefficients$scale),
             shape=x$coefficients$shape)
     rownames(cf) <- paste0("station",1:nrow(cf))
-    print.default(format(cf, digits = digits), print.gap = 2, quote = FALSE)
+    print.default(format(cf, digits = digits, scientific = FALSE), print.gap = 2, quote = FALSE)
   } else {
     cat("Maximum Likelihood GEV Fitting\n\n")
     cat("Estimator: Maximum Likelihood\n")
@@ -311,6 +334,7 @@ vcov.gevreg <- function(object, model = c("full", "location", "scale", "shape"),
 ## need pgev and qgev as vector version as well
 dgev.gevreg <- function (x, loc = 0, scale = 1, shape = 0, log = FALSE) 
 {
+  #print(scale)
   if (min(scale) <= 0) 
     stop("invalid scale parameter")
   x <- (x - loc)/scale
@@ -328,7 +352,9 @@ dgev.gevreg <- function (x, loc = 0, scale = 1, shape = 0, log = FALSE)
   return(dns)
 }
 
-
+pgev.gevreg <- function (q, loc = 0, scale = 1, shape = 0, lower.tail = TRUE){}
+qgev.gevreg <- function (p, loc = 0, scale = 1, shape = 0, lower.tail = TRUE){}
+  
 
 
 terms.gevreg <- function(x, model = c("location", "scale", "shape", "full"), ...) x$terms[[match.arg(model)]]
@@ -388,8 +414,8 @@ predict.gevreg <- function(object, newdata = NULL,
                  "scale" = scale,
                  "shape" = shape,
                  "parameter" = data.frame(location, scale, shape),
-                 "probability" = pgev(at, loc = location, scale = scale, shape = shape),
-                 "quantile" = pmax(0, qgev(at, loc = location, scale = scale, shape = shape))
+                 "probability" = pgev.gevreg(at, loc = location, scale = scale, shape = shape),
+                 "quantile" = pmax(0, qgev.gevreg(at, loc = location, scale = scale, shape = shape))
   )
   return(rval)
 }

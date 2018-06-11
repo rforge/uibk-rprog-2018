@@ -3,6 +3,7 @@
 \alias{gevreg_fit}
 \alias{gevreg_control}
 
+
 \title{Maximum Likelihood GEV Fitting}
 
 \description{
@@ -17,7 +18,7 @@ gevreg_fit(x, y, z = NULL, v = NULL, n.stats, control)
 
 gevreg_control(maxit = 5000, start = NULL, grad = TRUE, hessian = TRUE, ...)
 
-dgev.gevreg(x, loc = 0, scale = 1, shape = 0, log = FALSE)
+
 }
 
 \arguments{
@@ -43,9 +44,7 @@ dgev.gevreg(x, loc = 0, scale = 1, shape = 0, log = FALSE)
   \item{grad}{should the gradient-based method "BFGS" used for optimization. If \code{FALSE} "Nelder-Mead" is used instead.}
   \item{hessian}{should a hessian be computed during the optimaztion process. Possible values are \code{"none"}, \code{"numderiv"} or \code{"optim"}, which is the default.}
   
-  \item{x}{for \code{dgev.gevreg} vector of quantiles.}
-  \item{loc, scale, shape}{vector of location, scale and shape parameters.}
-  \item{log}{locigacl; if \code{TRUE}, probabilities p are given as log(p).}
+ 
 }
 
 \details{
@@ -55,7 +54,7 @@ dgev.gevreg(x, loc = 0, scale = 1, shape = 0, log = FALSE)
 
 \code{gevreg_control}{ takes control parameters e.g. maxit which are transferred to \link{optim}. In addition \code{grad} specifies wether a gradient based optimization routine ("BFGS") or "Nelder-Mead" should be used for optimization. In the former case the gradient will be computed with the \code{\link[numDeriv]{grad}} function.}
 
-\code{dgev.gevreg}{GEV density function which can take location, scale and shape parameters as vector. Simply a modifed version of \code{\link[SpatialExtremes]{dgev}}.}
+
 }
 
 \value{
