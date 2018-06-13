@@ -1,6 +1,6 @@
 circmax <- function(formula, data, subset, na.action,
   model = TRUE, y = TRUE, x = FALSE,
-  control = circmax_control(...), ...)
+  control = circmax_control(...), which.method = "default", ...)
 {
   ## Call
   cl <- match.call()
@@ -43,7 +43,7 @@ circmax <- function(formula, data, subset, na.action,
   n <- length(Y)
 
   ## Call the actual workhorse: circmax_fit()
-  rval <- circmax_fit(X, Y, Z, control)
+  rval <- circmax_fit(X, Y, Z, control, which.method = which.method)
 
   ## Further model information
   rval$call <- cl
@@ -70,54 +70,110 @@ circmax_control <- function(maxit = 5000, start = NULL, ...)
   ctrl
 }
 
-circmax_fit <- function(x, y, z = NULL, control)
+circmax_fit <- function(x, y, z = NULL, control, which.method = "default")
 {
   ## Dimensions
   n <- length(y)
-  if(is.null(z)) matrix(1, n, 1, dimnames = list(rownames(x), "(Intercept)"))
+  if(is.null(z)) z <- matrix(1, n, 1, dimnames = list(rownames(x), "(Intercept)"))  # CHECK HTOBIT!!!
   m <- ncol(x)  
   p <- ncol(z)
   stopifnot(n == nrow(x), n == nrow(z))
 
-  ## Negative log-likelihood    
-  nll <- function(par) {
-    beta <- par[1:m]
-    gamma <- par[m + (1:p)]
-    mu <- x[, 1, drop = FALSE] %*% beta[1] + 2 * atan(x[, -1, drop = FALSE] %*% beta[-1])
-    kappa <- exp(z %*% gamma)
-    ll <- dvonmises(y, mu = mu, kappa = kappa, log = TRUE)
-    -sum(ll)
-  }
+  ## Negative log-likelihood and gradients   
+  if (which.method == "default"){
+    nll <- function(par) {
+      beta <- par[1:m]
+      gamma <- par[m + (1:p)]
+      mu <- 2 * atan(x[, 1, drop = FALSE] %*% beta[1]) + 2 * atan(x[, -1, drop = FALSE] %*% beta[-1])
+      kappa <- exp(z %*% gamma)
+      ll <- dvonmises(y, mu = mu, kappa = kappa, log = TRUE)
+      -sum(ll)
+    }
 
-#  ## Negative log-likelihood    
-#  nll <- function(par) {
-#    beta <- par[1:m]
-#    gamma <- par[m + (1:p)]
-#    mu <- x[, 1, drop = FALSE] %*% beta[1] + 2 * atan(x[, -1, drop = FALSE] %*% beta[-1])
-#    kappa <- exp(z %*% gamma)
-#      if (any(mu < 0 | mu > 2*pi)){
-#        return(10^9)
-#      } else {
-#        ll <- dvonmises(y, mu = mu, kappa = kappa, log = TRUE)
-#        -sum(ll)
-#      }
-#  }
-#
-#  ## Negative log-likelihood    
-#  nll <- function(par) {
-#    beta <- par[1:m]
-#    gamma <- par[m + (1:p)]
-#    mu <- x[, 1, drop = FALSE] %*% beta[1] + 2 * atan(x[, -1, drop = FALSE] %*% beta[-1])
-#    kappa <- exp(z %*% gamma)
-#    print(par[1])
-#      if (par[1] < 0 | par[1] > 2*pi){
-#        return(10^9)
-#      } else {
-#        ll <- dvonmises(y, mu = mu, kappa = kappa, log = TRUE)
-#        -sum(ll)
-#      }
-#  }
-  
+    gr <- function(par) {
+      beta <- par[1:m]
+      gamma <- par[m + (1:p)]
+      mu0 <- 2 * atan(x[, 1, drop = FALSE] %*% beta[1])
+      if(m > 1){
+        mu <- 2 * atan(x[, -1, drop = FALSE] %*% beta[-1])
+      } else { 
+        mu <- 0
+      }
+      kappa <- exp(z %*% gamma)
+      
+      gr_mu0 <- 2 * kappa * sin(y - mu0 - mu) / (tan(mu0 / 2)^2 + 1) 
+      if(m > 1){
+        gr_mu <- 2 * kappa * sin(y - mu0 - mu) / (tan(mu / 2)^2 + 1) 
+      }
+      gr_kappa <- kappa * (cos(y - mu0 - mu) - 
+        besselI(kappa, nu = 0, expon.scaled = TRUE) /besselI(kappa, nu = 1, expon.scaled = TRUE))
+      gr <- numeric(length(par))
+      gr[1] <- t(x[, 1, drop = FALSE]) %*% gr_mu0
+      if(m > 1){
+        gr[2:m] <- t(x[, -1, drop = FALSE]) %*% gr_mu
+      }
+      gr[m + (1:p)] <- t(z) %*% gr_kappa
+      return(-gr)
+    }
+
+  } else if (which.method == "version1") { 
+    nll <- function(par) {
+      beta <- par[1:m]
+      gamma <- par[m + (1:p)]
+      mu <- x[, 1, drop = FALSE] %*% beta[1] + 2 * atan(x[, -1, drop = FALSE] %*% beta[-1])
+      kappa <- exp(z %*% gamma)
+      ll <- dvonmises(y, mu = mu, kappa = kappa, log = TRUE)
+      -sum(ll)
+    }
+  } else if (which.method == "version2") { 
+    nll <- function(par) {
+      beta <- par[1:m]
+      gamma <- par[m + (1:p)]
+      mu <- 2 * atan(x %*% beta)
+      kappa <- exp(z %*% gamma)
+      ll <- dvonmises(y, mu = mu, kappa = kappa, log = TRUE)
+      -sum(ll)
+    }
+  } else if (which.method %in% c("L-BFGS-B", "L-BFGS-B-GR")) {
+    nll <- function(par) {
+      beta <- par[1:m]
+      gamma <- par[m + (1:p)]
+      mu <- 2 * atan(x[, 1, drop = FALSE] %*% beta[1]) + 2 * atan(x[, -1, drop = FALSE] %*% beta[-1])
+      kappa <- exp(z %*% gamma)
+      ll <- dvonmises(y, mu = mu, kappa = kappa, log = TRUE)
+      rval <- -sum(ll)
+      if(is.infinite(rval)){
+        s <- sign(rval)
+        rval <- 10e9 * s
+      }
+      return(rval)
+    }
+    gr <- function(par) {
+      beta <- par[1:m]
+      gamma <- par[m + (1:p)]
+      mu0 <- 2 * atan(x[, 1, drop = FALSE] %*% beta[1])
+      if(m > 1){
+        mu <- 2 * atan(x[, -1, drop = FALSE] %*% beta[-1])
+      } else { 
+        mu <- 0
+      }
+      kappa <- exp(z %*% gamma)
+      
+      gr_mu0 <- 2 * kappa * sin(y - mu0 - mu) / (tan(mu0 / 2)^2 + 1) 
+      if(m > 1){
+        gr_mu <- 2 * kappa * sin(y - mu0 - mu) / (tan(mu / 2)^2 + 1) 
+      }
+      gr_kappa <- kappa * (cos(y - mu0 - mu) - 
+        besselI(kappa, nu = 0, expon.scaled = TRUE) /besselI(kappa, nu = 1, expon.scaled = TRUE))
+      gr <- numeric(length(par))
+      gr[1] <- t(x[, 1, drop = FALSE]) %*% gr_mu0
+      if(m > 1){
+        gr[2:m] <- t(x[, -1, drop = FALSE]) %*% gr_mu
+      }
+      gr[m + (1:p)] <- t(z) %*% gr_kappa
+      return(-gr)
+    }
+  } 
   ## Starting values (by default zeros)
   if(is.null(control$start)) {
     start <- rep(0, m + p)
@@ -126,10 +182,15 @@ circmax_fit <- function(x, y, z = NULL, control)
     stopifnot(length(start) == m + p)
   }
   control$start <- NULL
-  
-  ## Optimization
-  opt <- optim(par = start, fn = nll, control = control)
 
+  ## Optimization
+  if (which.method == "L-BFGS-B") { 
+    opt <- optim(par = start, fn = nll, control = control, method = "L-BFGS-B")
+  } else if (which.method == "L-BFGS-B-GR") {
+    opt <- optim(par = start, fn = nll, control = control, method = "L-BFGS-B", gr = gr)
+  } else { 
+    opt <- optim(par = start, fn = nll, control = control)
+  }
   ## Collect information
   names(opt)[1:2] <- c("coefficients", "loglik")
   opt$coefficients <- list(
@@ -234,7 +295,7 @@ predict.circmax <- function(object, newdata = NULL,
   }
 
   ## Predicted parameters
-  if(type != "scale") location <- drop(X[, 1, drop = FALSE] %*% object$coefficients$location[1] 
+  if(type != "scale") location <- drop(2 * atan(X[, 1, drop = FALSE] %*% object$coefficients$location[1]) 
                                        + 2 * atan(X[, -1, drop = FALSE] %*% object$coefficients$location[-1]))
   if(type != "location") scale <- exp(drop(Z %*% object$coefficients$scale))
 
