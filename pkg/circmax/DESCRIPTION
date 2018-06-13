@@ -1,7 +1,7 @@
 Package: circmax
 Title: Maximum Likelihood Estimation for a Circular Response
 Version: 0.1
-Authors@R: c(person(given = "Moritz N.", family = "Lang", role = c("aut", "cre"), email = "moritz.n.lang@gmail.com"))
+Authors@R: person(given = "Moritz N.", family = "Lang", role = c("aut", "cre"), email = "moritz.n.lang@gmail.com")
 Description: Maximum likelihood estimation for a circular response.
 Depends: R (>= 3.4.0)
 License: GPL-2 | GPL-3
