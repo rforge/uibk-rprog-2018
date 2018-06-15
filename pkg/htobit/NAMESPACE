@@ -5,7 +5,8 @@ importFrom("numDeriv", "grad", "hessian")
 export(
   "htobit",
   "htobit_control",
-  "htobit_fit"
+  "htobit_fit",
+  "getSummary.htobit"
 )
 
 ## methods for htobit
