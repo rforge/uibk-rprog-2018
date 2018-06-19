@@ -1,63 +1,54 @@
-gevreg <- function(formula, data, subset, na.action,
-                model = TRUE, y = TRUE, x = FALSE, z = FALSE, v = FALSE,
-                control = gevreg_control(...), ...)
+gevreg <- function (formula, data, subset, na.action, model = TRUE, y = TRUE, 
+                    x = FALSE, z = FALSE, v = FALSE, control = gevreg_control(...), 
+                    ...) 
 {
-  ## call
   cl <- match.call()
-  if(missing(data)) data <- environment(formula)
+  if (missing(data)) 
+    data <- environment(formula)
   mf <- match.call(expand.dots = FALSE)
-  m <- match(c("formula", "data", "subset", "na.action"), names(mf), 0L)
+  m <- match(c("formula", "data", "subset", "na.action"), names(mf), 
+             0L)
   mf <- mf[c(1L, m)]
   mf$drop.unused.levels <- TRUE
-  
-  
-  ## formula
   oformula <- as.formula(formula)
   formula <- as.Formula(formula)
-  a <- attr(terms(formula),"term.labels")
-  if(length(formula)[2L] == 1L) {
-    if(length(a) == 0){
-      formula <- as.Formula(formula(formula), ~ 1|1)
-      
-      # FIXIT would be nice to use a variable to update formula
-    } else if (a[1] == "station") { 
-      formula <- update(formula(formula), . ~ . -1)
-      formula <- as.Formula(formula(formula), ~ -1 + station | -1 + station)
-    } else {
-      formula <- update(formula(formula), . ~ . -1)
-      formula <- as.Formula(formula(formula), ~ 1 | 1 )
+  a <- attr(terms(formula), "term.labels")
+  if (length(formula)[2L] == 1L) {
+    if (length(a) == 0) {
+      formula <- as.Formula(formula(formula), ~1 | 1)
     }
-  } else if(length(formula)[2L] == 2L) {
-    
-    formula.l <- formula(formula,rhs=0)
-    formula <- eval(parse(text=paste0(formula.l,"-1 + ",a)))
-    formula <- as.Formula(formula(formula), ~ 1)
-    
-  } else {
-    if(length(formula)[2L] > 3L) {
+    else if (a[1] == "station") {
+      formula <- update(formula(formula), . ~ . - 1)
+      formula <- as.Formula(formula(formula), ~-1 + station | 
+                              -1 + station)
+    }
+    else {
+      formula <- update(formula(formula), . ~ . - 1)
+      formula <- as.Formula(formula(formula), ~1 | 1)
+    }
+  }
+  else if (length(formula)[2L] == 2L) {
+    formula.l <- formula(formula, rhs = 0)
+    formula <- eval(parse(text = paste0(formula.l, "-1 + ", 
+                                        a)))
+    formula <- as.Formula(formula(formula), ~1)
+  }
+  else {
+    if (length(formula)[2L] > 3L) {
       formula <- Formula(formula(formula, rhs = 1L:3L))
       warning("formula must not have more than three RHS parts")
     }
   }
   mf$formula <- formula
-  
-  #print(formula)
-  
-  ## data
-  if(!is.factor(data$station)) stop("station column must be a factor")
+  if (!is.factor(data$station)) 
+    stop("station column must be a factor")
   n.stats <- length(levels(data$station))
-  
-  ## subset
-  if(m[3] != 0){
+  if (m[3] != 0) {
     data$station <- as.numeric(data$station)
     n.stats <- 1
   }
-  
-  ## evaluate model.frame
   mf[[1L]] <- as.name("model.frame")
-  mf <- eval(mf, parent.frame())  
-  
-  ## extract terms, model matrix, response
+  mf <- eval(mf, parent.frame())
   mt <- terms(formula, data = data)
   mtX <- terms(formula, data = data, rhs = 1L)
   mtZ <- delete.response(terms(formula, data = data, rhs = 2L))
@@ -66,27 +57,28 @@ gevreg <- function(formula, data, subset, na.action,
   X <- model.matrix(mtX, mf)
   Z <- model.matrix(mtZ, mf)
   V <- model.matrix(mtV, mf)
-  
-  ## sanity check
-  if(length(Y) < 1) stop("empty model")
+  if (length(Y) < 1) 
+    stop("empty model")
   n <- length(Y)
-  
-  ## call the actual workhorse
   rval <- gevreg_fit(X, Y, Z, V, n.stats, control)
-
-  ## further model information
   rval$call <- cl
   rval$formula <- oformula
-  rval$terms <- list(location = mtX, scale = mtZ, shape = mtV, full = mt)
-  rval$levels <- list(location = .getXlevels(mtX, mf), scale = .getXlevels(mtZ, mf), shape = .getXlevels(mtV, mf), full = .getXlevels(mt, mf))
-  rval$contrasts <- list(location = attr(X, "contrasts"), scale = attr(Z, "contrasts"), shape = attr(V, "contrasts"))
-  if(model) rval$model <- mf
-  if(y) rval$y <- Y
-  if(x) rval$x <- list(location = X, scale = Z, shape = V)
+  rval$terms <- list(location = mtX, scale = mtZ, shape = mtV, 
+                     full = mt)
+  rval$levels <- list(location = .getXlevels(mtX, mf), scale = .getXlevels(mtZ, 
+                                                                           mf), shape = .getXlevels(mtV, mf), full = .getXlevels(mt, 
+                                                                                                                                 mf))
+  rval$contrasts <- list(location = attr(X, "contrasts"), scale = attr(Z, 
+                                                                       "contrasts"), shape = attr(V, "contrasts"))
+  if (model) 
+    rval$model <- mf
+  if (y) 
+    rval$y <- Y
+  if (x) 
+    rval$x <- list(location = X, scale = Z, shape = V)
   class(rval) <- "gevreg"
   return(rval)
 }
-
 
 
 gevreg_control <- function(maxit = 5000, start = NULL, grad = TRUE, hessian = TRUE, ...)
@@ -107,148 +99,108 @@ gevreg_control <- function(maxit = 5000, start = NULL, grad = TRUE, hessian = TR
 }
 
 
-gevreg_fit <- function(x, y, z = NULL, v = NULL, n.stats, control){
-  
-  ## dimensions
+gevreg_fit <- function (x, y, z = NULL, v = NULL, n.stats, control) 
+{
   n <- length(y)
-  if(is.null(z)) matrix(1, n, 1, dimnames = list(rownames(x), "(Intercept)"))
-  if(is.null(v)) matrix(1, n, 1, dimnames = list(rownames(x), "(Intercept)"))
-  m <- ncol(x)  
+  if (is.null(z)) 
+    matrix(1, n, 1, dimnames = list(rownames(x), "(Intercept)"))
+  if (is.null(v)) 
+    matrix(1, n, 1, dimnames = list(rownames(x), "(Intercept)"))
+  m <- ncol(x)
   p <- ncol(z)
   q <- ncol(v)
   stopifnot(n == nrow(x), n == nrow(z), n == nrow(v))
-  
   nll <- function(par, dat = NULL) {
-    
-    # scale the coefficients back to original scaling
-    #par = par*parscale
-    
-    # define location, scale and shape coefficients
     loccoeff <- par[1:m]
     scalecoeff <- par[m + (1:p)]
     shapecoeff <- par[m + p + (1:q)]
-    
-    # compute the GEV parameters according to the given coefficients
     locs <- x %*% loccoeff
-    scales <- exp( z %*% scalecoeff )
+    scales <- exp(z %*% scalecoeff)
     shapes <- v %*% shapecoeff
-    
-    # compute negative log likelihood
-    - sum(dgev.gevreg(y, loc = locs, scale = scales, shape = shapes, log = TRUE))
+    -sum(dgev.gevreg(y, loc = locs, scale = scales, shape = shapes, 
+                     log = TRUE))
   }
-  
-  ## negative gradient 
   ngr <- function(par, dat) {
-   
-    ## numerical
-    return(grad(nll, par)) #*parscale)) #
-
-    ## analytical (adapted from mev::gev.score)
-    loccoeff <- par[1:m]
-    scalecoeff <- par[m + (1:p)]
-    shapecoeff <- par[m + p + (1:q)]
-    mu <- x %*% loccoeff
-    sigma <- exp( z %*% scalecoeff )
-    xi <- v %*% shapecoeff
-    rval <- matrix(0, nrow = nrow(x), ncol = ncol(x) + ncol(z) + ncol(v))
-      if (!isTRUE(all.equal(xi, 0))) {
-        rval <- c(sum(-(-(mu - dat) * xi/sigma + 1)^(-1/xi - 1)/sigma -
-                xi * (1/xi + 1)/(sigma * ((mu - dat) * xi/sigma -1))),
-                sum(-(dat - mu) * ((dat - mu) * xi/sigma +
-                 1)^(-1/xi - 1)/sigma^2 + (dat - mu) * (xi + 1)/(sigma^2 *
-                ((dat - mu) * xi/sigma + 1)) - 1/sigma),
-                sum(-(mu -dat) * (1/xi + 1)/(sigma * ((mu - dat) * xi/sigma -
-                1)) - (log(-(mu - dat) * xi/sigma + 1)/xi^2 - (mu -
-                dat)/(sigma * ((mu - dat) * xi/sigma - 1) * xi))/(-(mu -
-                dat) * xi/sigma + 1)^(1/xi) + log(-(mu - dat) * xi/sigma +
-                1)/xi^2))
-      } else {
-        rval <- c(sum(-exp(mu/sigma - dat/sigma)/sigma + 1/sigma),
-                  sum(mu *exp(mu/sigma - dat/sigma)/sigma^2 - dat * exp(mu/sigma -dat/sigma)/sigma^2 - mu/sigma^2 - 1/sigma + dat/sigma^2),
-                  0)
-      }
-    return(rval)
+    return(grad(nll, par))
+    # loccoeff <- par[1:m]
+    # scalecoeff <- par[m + (1:p)]
+    # shapecoeff <- par[m + p + (1:q)]
+    # mu <- x %*% loccoeff
+    # sigma <- exp(z %*% scalecoeff)
+    # xi <- v %*% shapecoeff
+    # rval <- matrix(0, nrow = nrow(x), ncol = ncol(x) + ncol(z) + 
+    #                  ncol(v))
+    # if (!isTRUE(all.equal(xi, 0))) {
+    #   rval <- c(sum(-(-(mu - dat) * xi/sigma + 1)^(-1/xi - 
+    #                                                  1)/sigma - xi * (1/xi + 1)/(sigma * ((mu - dat) * 
+    #                                                                                         xi/sigma - 1))), sum(-(dat - mu) * ((dat - mu) * 
+    #                                                                                                                               xi/sigma + 1)^(-1/xi - 1)/sigma^2 + (dat - mu) * 
+    #                                                                                                                (xi + 1)/(sigma^2 * ((dat - mu) * xi/sigma + 
+    #                                                                                                                                       1)) - 1/sigma), sum(-(mu - dat) * (1/xi + 1)/(sigma * 
+    #                                                                                                                                                                                       ((mu - dat) * xi/sigma - 1)) - (log(-(mu - dat) * 
+    #                                                                                                                                                                                                                             xi/sigma + 1)/xi^2 - (mu - dat)/(sigma * ((mu - 
+    #                                                                                                                                                                                                                                                                          dat) * xi/sigma - 1) * xi))/(-(mu - dat) * xi/sigma + 
+    #                                                                                                                                                                                                                                                                                                         1)^(1/xi) + log(-(mu - dat) * xi/sigma + 1)/xi^2))
+    # }
+    # else {
+    #   rval <- c(sum(-exp(mu/sigma - dat/sigma)/sigma + 
+    #                   1/sigma), sum(mu * exp(mu/sigma - dat/sigma)/sigma^2 - 
+    #                                   dat * exp(mu/sigma - dat/sigma)/sigma^2 - mu/sigma^2 - 
+    #                                   1/sigma + dat/sigma^2), 0)
+    # }
+    # return(rval)
   }
-  
-  ## clean up control arguments
   grad <- control$grad
   hess <- control$hessian
   meth <- control$method
   control$grad <- control$hessian <- control$method <- NULL
-  
-  ## starting values (by default via OLS)
-  if(is.null(control$start)) {
-    #start.loc <- glm.fit(x, y)
-    #start.scale <- glm.fit(z, log( y ))
-    #start.shape <- glm.fit(v, y)
-    #start <- c(start.loc$coefficients,start.scale$coefficients,start.shape$coefficients)
-    #start <- c(rep(start.loc$coefficients,n.stats),rep(start.scale$coefficients,n.stats),rep(start.shape$coefficients,n.stats))
-    #start.scale <- log( sqrt(6 * var(y, na.rm = TRUE))/pi )
-    #start.loc <- mean(y, na.rm = TRUE) - 0.58 * exp(start.scale)
+  if (is.null(control$start)) {
     start.scale <- sqrt(6 * var(y, na.rm = TRUE))/pi
     start.loc <- mean(y, na.rm = TRUE) - 0.58 * start.scale
     start.shape <- 0
-    start <- c(rep(start.loc,n.stats),log(rep(start.scale,n.stats)),rep(start.shape,n.stats))
-  } else {
+    start <- c(rep(start.loc, n.stats), log(rep(start.scale, 
+                                                n.stats)), rep(start.shape, n.stats))
+  }
+  else {
     start <- control$start
     stopifnot(length(start) == m + p + q)
-    #if(length(start) != m + p + q) stop(cat("Wrong number of starting values: you need",m + p + q,"but provided",length(start)))
-    #print(paste(length(start),m+p+q))
   }
   control$start <- NULL
-  #cat("\nstarting values: ",start,sep = "\t")
-  
-  ## rescale starting values for more stable optimization results
-  #parscale = 10^(floor(log10(abs(start))))
-  #start    = start/parscale
-  #start[is.na(start)] <- 0
-  #cat("\nrescaled starting values: ",start,sep = "\t")
-  
-  ## optimization
-  opt <- if(grad) {
-    optim(par = start, fn = nll, gr = ngr, dat = y, control = control, method = meth, hessian = (hess == "optim"))
-  } else {
-    optim(par = start, fn = nll, control = control, method = meth, hessian = (hess == "optim"))
+  opt <- if (grad) {
+    optim(par = start, fn = nll, gr = ngr, dat = y, control = control, 
+          method = meth, hessian = (hess == "optim"))
   }
-  
-  ## compute hessian (if necessary)
-  if(hess == "none") {
+  else {
+    optim(par = start, fn = nll, control = control, method = meth, 
+          hessian = (hess == "optim"))
+  }
+  if (hess == "none") {
     opt <- c(opt, list(hessian = NULL))
-  } else if(hess == "numderiv") {
+  }
+  else if (hess == "numderiv") {
     opt$hessian <- numDeriv::hessian(nll, opt$par)
   }
-
-  if(!is.null(opt$hessian)) {
-    rownames(opt$hessian) <- colnames(opt$hessian) <- c(
-      colnames(x), paste("(scale)", colnames(z), sep = "_"), paste("(shape)", colnames(v), sep = "_"))
+  if (!is.null(opt$hessian)) {
+    rownames(opt$hessian) <- colnames(opt$hessian) <- c(colnames(x), 
+                                                        paste("(scale)", colnames(z), sep = "_"), paste("(shape)", 
+                                                                                                        colnames(v), sep = "_"))
     opt$vcov <- solve(opt$hessian)
-    #opt$hessian <- NULL
   }
-  
-  ## enhance labels
   names(opt)[1:2] <- c("coefficients", "loglik")
-  opt$coefficients <- opt$coefficients #* parscale # scale back coefficients
-  opt$coefficients <- list(
-    location = opt$coefficients[1:m],
-    scale = opt$coefficients[m + (1:p)],
-    shape = opt$coefficients[m + p + (1:q)]
-  )
-  
-  ## residuals and fitted values
-  ## (FIXME: need manifest location/scale - not latent)
+  opt$coefficients <- opt$coefficients
+  opt$coefficients <- list(location = opt$coefficients[1:m], 
+                           scale = opt$coefficients[m + (1:p)], shape = opt$coefficients[m + 
+                                                                                           p + (1:q)])
   mu <- drop(x %*% opt$coefficients$location)
-  sigma <- exp( drop(z %*% opt$coefficients$scale) )
+  sigma <- exp(drop(z %*% opt$coefficients$scale))
   xi <- drop(v %*% opt$coefficients$shape)
   opt$residuals <- y - mu
   opt$fitted.values <- list(location = mu, scale = sigma, shape = xi)
-  
-  ## other information
   opt$method <- meth
   opt$loglik <- -opt$loglik
   opt$nobs <- n
   opt$df <- m + p + q
-  
-  return(opt)                                          
+  return(opt)
 }
 
 
@@ -428,7 +380,68 @@ residuals.gevreg <- function(object, type = c("standardized", "pearson", "respon
     object$residuals/object$fitted.values$scale
   }
 }
-#summary.gevreg
+#
 #print.summary.gevreg
 
+summary.gevreg <- function (object, ...) 
+{
+  object$residuals <- object$residuals/object$fitted.values$scale
+  k <- length(object$coefficients$location)
+  m <- length(object$coefficients$scale)
+  n <- length(object$coefficients$shape)
+  cf <- as.vector(do.call("c", object$coefficients))
+  se <- sqrt(diag(object$vcov))
+  cf <- cbind(cf, se, cf/se, 2 * pnorm(-abs(cf/se)))
+  colnames(cf) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+  cf <- list(location = cf[seq.int(length.out = k), , drop = FALSE], 
+             scale = cf[seq.int(length.out = m) + k, , drop = FALSE],
+             shape = cf[seq.int(length.out = n) + m + k, , drop = FALSE])
+  rownames(cf$location) <- names(object$coefficients$location)
+  rownames(cf$scale) <- names(object$coefficients$scale)
+  rownames(cf$shape) <- names(object$coefficients$shape)
+  object$coefficients <- cf
+  object$fitted.values <- object$terms <- object$levels <- object$contrasts <- NULL
+  class(object) <- "summary.gevreg"
+  object
+}
 
+print.summary.gevreg <- function (x, digits = max(3, getOption("digits") - 3), ...) 
+{
+  cat("\nCall:", deparse(x$call, width.cutoff = floor(getOption("width") * 
+                                                        0.85)), "", sep = "\n")
+  if (x$convergence > 0L) {
+    cat("model did not converge\n")
+  }
+  else {
+    cat(paste("Standardized residuals:\n", sep = ""))
+    print(structure(round(as.vector(quantile(x$residuals)), 
+                          digits = digits), .Names = c("Min", "1Q", "Median", 
+                                                       "3Q", "Max")))
+    if (NROW(x$coefficients$location)) {
+      cat(paste("\nCoefficients (location model):\n", sep = ""))
+      printCoefmat(x$coefficients$location, digits = digits, 
+                   signif.legend = FALSE)
+    } else cat("\nNo coefficients (in location model)\n")
+    if (NROW(x$coefficients$scale)) {
+      cat(paste("\nCoefficients (scale model with log link):\n", 
+                sep = ""))
+      printCoefmat(x$coefficients$scale, digits = digits, 
+                   signif.legend = FALSE)
+    } else cat("\nNo coefficients ( in scale model)\n")
+    if (NROW(x$coefficients$shape)) {
+      cat(paste("\nCoefficients (shape model):\n", 
+                sep = ""))
+      printCoefmat(x$coefficients$shape, digits = digits, 
+                   signif.legend = FALSE)
+    } else cat("\nNo coefficients ( in shape model)\n")
+    if (getOption("show.signif.stars") & any(do.call("rbind", 
+                                                     x$coefficients)[, 4L] < 0.1, na.rm = TRUE)) 
+      cat("---\nSignif. codes: ", "0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1", 
+          "\n")
+    cat("\nLog-likelihood:", formatC(x$loglik, digits = digits), 
+        "on", sum(sapply(x$coefficients, NROW)), "Df\n")
+    cat(paste("Number of iterations in", x$method, "optimization:", 
+              x$count[2L], "\n"))
+  }
+  invisible(x)
+}

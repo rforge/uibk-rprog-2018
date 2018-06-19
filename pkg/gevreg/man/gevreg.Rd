@@ -90,7 +90,7 @@ print(m, ext = TRUE)
 
 ## check some S3-Methods
 m <- gevreg(hs~station,gevregdata)
-vcov(m,model="l")
+vcov(m,model="loc")
 m$vcov
 coef(m)
 coef(m, model="shape")
