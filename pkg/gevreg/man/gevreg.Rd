@@ -16,7 +16,7 @@ gevreg(formula, data, subset, na.action,
 
 gevreg_fit(x, y, z = NULL, v = NULL, n.stats, control)
 
-gevreg_control(maxit = 5000, start = NULL, grad = TRUE, hessian = TRUE, ...)
+gevreg_control(maxit = 5000, start = NULL, grad = FALSE, hessian = FALSE, ...)
 
 
 }
@@ -42,7 +42,7 @@ gevreg_control(maxit = 5000, start = NULL, grad = TRUE, hessian = TRUE, ...)
   
   \item{n.stats}{number of stations that have to be fitted simultaneously.}
   \item{grad}{should the gradient-based method "BFGS" used for optimization. If \code{FALSE} "Nelder-Mead" is used instead.}
-  \item{hessian}{should a hessian be computed during the optimaztion process. Possible values are \code{"none"}, \code{"numderiv"} or \code{"optim"}, which is the default.}
+  \item{hessian}{should a hessian be computed during the optimization process. Possible values are \code{"none"}, \code{"numderiv"} or \code{"optim"}, defaults to "none".}
   
  
 }
@@ -78,24 +78,24 @@ gevreg_control(maxit = 5000, start = NULL, grad = TRUE, hessian = TRUE, ...)
 \examples{
 data("gevregdata")
 
-## Fit GEV to the snow depths of the first station in the dataset
+## Fit GEV to the snow depths of all stations in the dataset
 gevreg(hs~station,gevregdata)
 
-## Use Nelder-Mead as optmization method
-gevreg(hs~station,gevregdata,grad=FALSE)
+## Fit GEV to all observations, assumed as one station
+gevreg(hs~1,gevregdata)
+
+## Fit to second station in the dataset
+gevreg(hs~1,gevregdata,subset=station==2)
 
 ## Compute hessian afterwards with the grad function of the numDeriv package
-m <- gevreg(hs~station,gevregdata,grad=FALSE,hessian="numderiv",maxit=6000)
+m <- gevreg(hs~station,gevregdata,hessian="numderiv")
 print(m, ext = TRUE)
 
 ## check some S3-Methods
 m <- gevreg(hs~station,gevregdata)
-vcov(m,model="loc")
-m$vcov
 coef(m)
 coef(m, model="shape")
 logLik(m)
-
 
 }
 

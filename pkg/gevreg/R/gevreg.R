@@ -81,7 +81,7 @@ gevreg <- function (formula, data, subset, na.action, model = TRUE, y = TRUE,
 }
 
 
-gevreg_control <- function(maxit = 5000, start = NULL, grad = TRUE, hessian = TRUE, ...)
+gevreg_control <- function(maxit = 5000, start = NULL, grad = FALSE, hessian = FALSE, ...)
 {
   if(is.logical(hessian)) hessian <- if(hessian) "optim" else "none"
   if(is.character(hessian)) hessian <- match.arg(tolower(hessian), c("numderiv", "optim", "none"))
@@ -120,7 +120,13 @@ gevreg_fit <- function (x, y, z = NULL, v = NULL, n.stats, control)
     -sum(dgev.gevreg(y, loc = locs, scale = scales, shape = shapes, 
                      log = TRUE))
   }
+  
+  
   ngr <- function(par, dat) {
+    # loccoeff <- par[1:m]
+    # scalecoeff <- par[m + (1:p)]
+    # shapecoeff <- par[m + p + (1:q)]
+    # grpar <- c(loccoeff,log(scalecoeff),shapecoeff)
     return(grad(nll, par))
     # loccoeff <- par[1:m]
     # scalecoeff <- par[m + (1:p)]
@@ -158,12 +164,12 @@ gevreg_fit <- function (x, y, z = NULL, v = NULL, n.stats, control)
     start.scale <- sqrt(6 * var(y, na.rm = TRUE))/pi
     start.loc <- mean(y, na.rm = TRUE) - 0.58 * start.scale
     start.shape <- 0
-    start <- c(rep(start.loc, n.stats), log(rep(start.scale, 
-                                                n.stats)), rep(start.shape, n.stats))
+    start <- c(rep(start.loc, n.stats), rep(start.scale, 
+                                                n.stats), rep(start.shape, n.stats))
   }
   else {
     start <- control$start
-    stopifnot(length(start) == m + p + q)
+    #stopifnot(length(start) == m + p + q)
   }
   control$start <- NULL
   opt <- if (grad) {
