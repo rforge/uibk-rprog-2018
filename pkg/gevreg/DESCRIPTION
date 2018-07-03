@@ -1,10 +1,13 @@
 Package: gevreg
-Version: 0.1-3
-Date: 2018-06-09
-Title: Maximum Likelihood GEV Fitting
-Authors@R: person("Harald", "Schellander", role = c("aut", "cre"), email = "harald.schellander@zamg.ac.at")
+Version: 0.1-4
+Date: 2018-07-03
+Title: Smoth Spatial GEV Fitting with Maximum Likelihood 
+Authors@R: c(person("Harald", "Schellander", role = c("aut", "cre"),
+                     email = "harald.schellander@zamg.ac.at"))
+Author: Harald Schellander [aut, cre]
+Maintainer: Harald Schellander <harald.schellander@zamg.ac.at>
 Depends: R (>= 3.4.0)
-Imports: stats, Formula, numDeriv
+Imports: stats, Formula, optimx, SpatialExtremes
 Suggests: extRemes
-Description: Fit a GEV distribution via maximum likelihood to observations.
+Description: Fit a GEV distribution via maximum likelihood spatially to observations.
 License: GPL-2 | GPL-3

@@ -1,20 +1,18 @@
 \name{coef.gevreg}
 \alias{coef.gevreg}
 \alias{logLik.gevreg}
-\alias{vcov.gevreg}
 \alias{terms.gevreg}
 \alias{model.frame.gevreg}
 \alias{model.matrix.gevreg}
 \alias{residuals.gevreg}
 
 
-\title{Methods for gevreg objetcs}
+\title{Methods for gevreg objects}
 
 \description{Various methods for extracting information from fitted \code{gevreg} objects.}
 
 \usage{
 \method{coef}{gevreg}(object, model = c("full", "location", "scale", "shape"), ...)
-\method{vcov}{gevreg}(object, model = c("full", "location", "scale", "shape"), ...)
 \method{terms}{gevreg}(x, model = c("location", "scale", "shape", "full"), ...)
 \method{model.frame}{gevreg}(formula, ...)
 \method{model.matrix}{gevreg}(object, model = c("location", "scale", "shape"), ...)

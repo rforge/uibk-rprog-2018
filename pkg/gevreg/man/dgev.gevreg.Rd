@@ -6,7 +6,7 @@
 
 \title{GEV density, distribution and quantile function}
 
-\description{Vectorized sensity, distribution and quantile function for the GEV distribution.}
+\description{Vectorized density, distribution and quantile function for the GEV distribution.}
 
 \usage{
 dgev.gevreg(x, loc = 0, scale = 1, shape = 0, log = FALSE)

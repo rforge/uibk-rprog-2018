@@ -2,32 +2,31 @@
 \alias{gevregdata}
 
 
-\title{Random snow depth data for GEV fitting}
+\title{Random snow depth data for smooth spatial GEV fitting}
 
 \description{
-  50 Stations with yearly maxima of snow depth for 100 years and coordinates longitude (lon), latitude (lat) and elevation (alt), roughly corresponding to the domain of Austia. 
+  36 stations with yearly maxima of snow depth for 68 years conatinag NA's and coordinates longitude (lon), latitude (lat) and elevation (alt), roughly corresponding to the domain of Austia. 
 }
 \usage{
 data("gevregdata")
 }
 
 \format{
-A data frame containg 5000 rows and 5 columns. The first column (\code{station}) is a factor variable containg the levels 1 to 3. Column 2 (\code{hs}) contains snow depth maxima for 100 years per station, created with \code{\link[extRemes]{revd}}. Columns 3 to 5 (\code{lon}, \code{lat}, \code{alt}) are randomly created coordinates.  
+A list containg the data frames "hs" for snow depth data including coordinates, and "gev_params" with GEV parameters valid at the stations. The first column (\code{station}) in "hs" is a factor variable containg the levels 1 to 36. Column 2 (\code{hs}) contains snow depth maxima for 68 years per station, including NA's. Columns 3 to 5 (\code{lon}, \code{lat}, \code{alt}) are randomly created coordinates. For "gev_params" the three columns \code{loc},  \code{scale} and \code{shape} correspond to the location, scale and shape parameters locally estimated at the stations using function gevmle of package \code{\link[SpatialExtremes]{SpatialExtremes}}.
 }
 
 
-
 \examples{
-## load data
+## Load example data
 data("gevregdata")
+hs <- gevregdata[["hs"]]
+gev_params <- gevregdata[["gev_params"]]
 
-## histogram and summary of snow all depths
-hist(gevregdata$hs)
-summary(gevregdata$hs)
-
-## plot of locations
-plot(gevregdata$lon,gevregdata$lat)
-
+## explore dataset
+with(hs, plot(lon,lat))
+with(hs, hist(hs))
+df <- cbind(gev_params,data.frame(lon = unique(hs$lon), alt = unique(hs$alt)))
+plot(df)
 
 
 }

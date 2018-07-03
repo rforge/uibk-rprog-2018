@@ -1,25 +1,24 @@
-import("stats", "Formula", "numDeriv")
+import("stats", "Formula", "optimx", "SpatialExtremes")
 export(
   "gevreg",
   "gevreg_control",
   "gevreg_fit",
-  "dgev.gevreg"
+  "dgev.gevreg",
+  "pgev.gevreg",
+  "qgev.gevreg"
 )
 
 ## methods for gevreg
 S3method("coef", "gevreg")
-S3method("vcov", "gevreg")
+#S3method("vcov", "gevreg")
 S3method("logLik", "gevreg")
 S3method("print", "gevreg")
 S3method("predict", "gevreg")
 S3method("terms", "gevreg")
 S3method("model.frame","gevreg")
-S3method("model.matrix","gevreg") #function(object, model = c("location", "scale", "shape"), ...) 
+S3method("model.matrix","gevreg") 
 S3method("residuals", "gevreg")
 
-#residuals.gevreg
-#predict.gevreg
-#terms.gevreg <- function(x, model = c("location", "scale", "shape", "full"), ...) x$terms[[match.arg(model)]]
 
 
 
