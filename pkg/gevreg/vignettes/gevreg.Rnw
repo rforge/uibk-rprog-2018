@@ -30,7 +30,7 @@
 %% Sweave/vignette information and metadata
 %% need no \usepackage{Sweave}
 \SweaveOpts{engine = R, eps = FALSE, keep.source = TRUE, echo = TRUE}
-%\VignetteIndexEntry{v}
+%\VignetteIndexEntry{Smooth Spatial Maximum Likelihood GEV Fitting with gevreg}
 %\VignetteDepends{gevreg,ggplot2}
 %\VignetteKeywords{regression, GEV, smooth spatial, R}
 %\VignettePackage{gevreg}
