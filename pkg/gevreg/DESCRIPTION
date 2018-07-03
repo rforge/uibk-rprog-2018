@@ -1,5 +1,5 @@
 Package: gevreg
-Version: 0.1-5
+Version: 0.1-6
 Date: 2018-07-03
 Title: Smooth Spatial GEV Fitting with Maximum Likelihood 
 Authors@R: c(person("Harald", "Schellander", role = c("aut", "cre"),
@@ -8,6 +8,6 @@ Author: Harald Schellander [aut, cre]
 Maintainer: Harald Schellander <harald.schellander@zamg.ac.at>
 Depends: R (>= 3.4.0)
 Imports: stats, Formula, optimx, SpatialExtremes
-Suggests: extRemes
+Suggests: extRemes, ggplot2
 Description: Fit a GEV distribution via maximum likelihood spatially to observations.
 License: GPL-2 | GPL-3

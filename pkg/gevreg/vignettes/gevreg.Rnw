@@ -1,0 +1,109 @@
+\documentclass[a4paper,nojss]{jss}
+\usepackage{amsmath,amssymb,amsfonts,thumbpdf}
+
+\newcommand{\CRANpkg}[1]{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}%
+\newcommand{\samp}[1]{`\code{#1}'}%
+\DefineVerbatimEnvironment{example}{Verbatim}{}
+\setkeys{Gin}{width=\textwidth}
+
+\title{Smooth Spatial Maximum Likelihood GEV Fitting with \pkg{gevreg}}
+\Plaintitle{Smooth Spatial Maximum Likelihood GEV Fitting with gevreg}
+
+\author{Harald Schellander\\ZAMG Innsbruck}
+\Plainauthor{Harald Schellander}
+
+\Abstract{
+  The \pkg{gevreg} package provides functions for maximum likelihood
+  estimation of smooth spatial regression models for the Generalized Extreme Value Distribution GEV. Models for the location, scale and shape parameter of the GEV can have different regressors. Suitable standard methods to compute predictions are provided as well. The model and its \proglang{R} implementation is introduced and illustrated by usinf snow depth data for Austria.
+}
+
+\Keywords{regression, GEV, smooth spatial, \proglang{R}}
+\Plainkeywords{regression, GEV, smooth spatial, R}
+
+\Address{
+  Harald Schellander\\
+  ZAMG - Zentralanstalt f\"ur Meteorologie und Geodynamik\\
+  6020 Innsbruck, Austria\\
+  E-mail: \email{Harald.Schellander@zamg.ac.at}}
+}
+
+%% Sweave/vignette information and metadata
+%% need no \usepackage{Sweave}
+\SweaveOpts{engine = R, eps = FALSE, keep.source = TRUE, echo = TRUE}
+%\VignetteIndexEntry{v}
+%\VignetteDepends{gevreg,ggplot2}
+%\VignetteKeywords{regression, GEV, smooth spatial, R}
+%\VignettePackage{gevreg}
+
+
+<<preliminaries, echo=FALSE, results=hide>>=
+options(width = 70, prompt = "R> ", continue = "+  ")
+library("gevreg")
+@
+
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% introduction
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+\label{sec:intro}
+A spatial representation of meteorological extremes such as snow depth is of crucial importance for numerous purposes such as the planning and construction of buildings, for avalanche simulation~\citep{HandbuchTechnischerLawinenschutz2011} or in general risk assessment. 
+
+A more or less simple interpolation of GEV parameters to space has some disadvantages, as e.g.~\cite{BlanchetLehning2010} showed for extreme snow depths in Switzerland. As an improvement they suggested a direct estimation of a spatially smooth generalized extreme value (GEV) distribution, called \emph{smooth spatial modeling}. With smooth modeling the GEV parameters are modeled as smooth functions of spatial covariates. Spatially varying marginal distributions are achieved by maximizing the sum of the log-likelihood function over all stations. Compared to several interpolation methods, smooth modeling for swiss snow depth led to more accurate marginal distributions, especially in data sparse regions. The key feature of smooth modeling, permitting to approximate the likelihood as a sum of GEV likelihoods at the stations, is the simplifying assumption that annual snow depth maxima are approximately independent in space and time. Nevertheless, smooth modeling does not provide any spatial dependence of extremes. 
+
+As a way to account for spatial dependence of extremes, \emph{max-stable processes} as an extension of multivariate extreme value theory to infinite dimensions can be used~\citep{Haan1984}. With max-stable processes, the margins and their spatial dependency can be modeled simultaneously but independently. The \CRANpkg{SpatialExtremes} package provides functions for statistical modelling of spatial extremes using max-stable processes, copula or Bayesian hierarchical models. In addition, the \CRANpkg{hkevp} package provides several procedures around the HKEVP model of \cite{Reich2012} and the Latent Variable Model of \cite{DavisonRibatetPadoan2012}. However, no package for easy use of the smooth modeling approach exists. 
+
+The \pkg{gevreg} package provides a function to fit a smooth spatial regression model to observation. It has a convenient interface to estimate the model with maximum likelihood and provides several methods for analysis and prediction. 
+The outline of the paper is as follows. Section 2 describes the idea of smooth spatial (extreme value) modeling, and Section 3 presents its R implementation. Section 4 illustrates the package
+functions with Austrian snow depth data and finally Section 5 summarizes the paper.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SSM
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Smooth Spatial Modeling of Extremes}
+\label{sec:ssm}
+The annual maximum of a variable can be interpreted as a time-space stochastic process $\{S_{x}^{(t)}\}$, where $t$ denotes the corresponding year and $x\in\mathcal{A}$ the location ,e.g. in Austria. However, we assume that the distribution of $S_x^{(t)}$ does not depend on the time $t$ and therefore for each of the GEV parameters, we consider a linear model, i.\,e.~a model of the form
+
+\begin{align}\label{eq:GEVmodel}
+\eta(x) = \alpha_0 + \sum_{k=1}^m \alpha_k y_k(x) + f\left(y_{m+1}(x),\ldots,y_{n}(x)\right)\quad
+\end{align}
+
+at location $x$, where $\eta$ denotes one of the GEV parameters, $y_1,\ldots,y_n$ are the considered covariates as functions of the location, $\alpha_0,\ldots,\alpha_m\in\mathbb{R}$ are the coefficients of the linear part and $f$ is a P-spline with 2 knots, evenly distributed across the spatial domain. For $k=1,\ldots,K$ the $k$-th station is given by the location $x_k$ and therefore, we have a realization $s_{x_k}^{(1)},\ldots,s_{x_k}^{(N)}$ of the random sample $S_{x_k}^{(1)},\ldots,S_{x_k}^{(N)}$ given as measurements. Note that $S_{x_k}\sim \text{GEV}(\mu_{x_k},\sigma_{x_k},\xi_{x_k})$ and $\mu(x_k),\sigma(x_k),\xi(x_k)$ are the GEV parameters given by the linear models in \eqref{eq:GEVmodel}. By $\ell_k\left(\mu(x_k),\sigma(x_k),\xi(x_k)\right)$ we denote the log-likelihood function at the $k$-th station corresponding to \eqref{eq:GEVmodel}. With the assumption of spatially independent stations, the log-likelihood function then reads as
+
+\[
+l = \sum_{k=1}^K \ell_k\left(\mu(x_k),\sigma(x_k),\xi(x_k)\right),
+\]
+
+where $l$ only depends on the coefficients of the linear models for the GEV parameters, cf.~\eqref{eq:GEVmodel}. This approach was called \emph{smooth modeling} by~\cite{BlanchetLehning2010}.
+
+The advantage of maximizing the sum of the log-likelihood functions at the stations compared to maximizing the log-likelihood function at each station lies in the following fact: A good fit at a single station leading to worse fits at several other stations will be penalized. As a consequence, the stations become intertwined in terms of the fitting. As the smooth model does not provide any spatial dependence, it is generally assumed to be less suited to spatially model extremes, compared to other approaches as fitting a max-stable process. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% R implementation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section[R implementation]{\proglang{R} implementation}
+\label{sec:implementation}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% example
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Example}
+\label{sec:example}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Summary
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Summary}
+\label{sec:summary}
+
+
+\bibliography{gevreg}
+
+\end{document}
