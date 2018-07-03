@@ -1,7 +1,6 @@
 dgp <- function(n = 1000, beta = c(3, 5, 2), gamma = c(1), control = "version2") {
   m <- length(beta) - 1  # here: number of betas minus intercept
   p <- length(gamma) -1  # here: number of gammas minus intercept
-
   if(control == "version1") {
     d <- sapply(1:(m + p), function(x) {
       mu <- runif(1, 0, 2 * pi)
@@ -33,26 +32,46 @@ plot_circ <- function(x){
   plot(circular::as.circular(x), stack = TRUE, col = colorspace::rainbow_hcl(length(x)))
 }
 
-test_mu <- 1
-test_beta <- 2
-test_kappa <- 2
+eta.mu0 <- 0
+eta.mu <- 2
+eta.kappa <- 2
 
-
-sim_dat <- dgp(beta = c(test_mu, test_beta), gamma = test_kappa)
+sim_dat <- dgp(n = 1, beta = c(eta.mu0, eta.mu), gamma = eta.kappa)
 d <- sim_dat[["data"]]
 mu <- sim_dat[["mu"]]
 kappa <- sim_dat[["kappa"]]
 
-par(mfrow = c(3, 1))
-plot(d$y ~ d$x1)
-plot_circ(d$y)
+#par(mfrow = c(3, 1))
+#plot(d$y ~ d$x1)
+#plot_circ(d$y)
 
-plt_beta <- seq(-20, 20, 0.1)
-ll <- sapply(plt_beta, function(x) sum(circmax::dvonmises(d$y, 2 * atan(test_mu) + 2 * atan(crossprod(t(d$x1), x)), kappa, log = TRUE)))
-plot(ll ~ plt_mu, type = "l")
+ll_fun <- function(eta.mu0, eta.mu, eta.kappa, y, log = FALSE) {
+  mu0 <- 2 * atan(eta.mu0)
+  mu <- 2 * atan(eta.mu)
+  kappa <- exp(eta.kappa)
+  ll <- circmax::dvonmises(y, mu = (mu0 + mu), kappa = kappa, log = TRUE)
+  #ll <- NULL
+  #for(i in 1:length(y)) {
+  #  ll <- c(ll,circular::dvonmises(y[i], as.circular(mu), kappa, log = TRUE))
+  #}
+  if(log == TRUE) {
+    return(sum(ll))
+  } else {
+    return(exp(sum(ll)))
+  }
+}
 
 
+test_eta.mu <- seq(-20, 20, 0.1)
+##ll <- sapply(plt_beta, function(x) sum(circmax::dvonmises(d$y, 2 * atan(test_mu) + 2 * atan(crossprod(t(d$x1), x)), kappa, log = TRUE)))
+ll <- sapply(test_eta.mu, function(x) ll_fun(eta.mu0, x, eta.kappa, d$y, log = TRUE))
+par(mfrow = c(2,1))
+plot(ll ~ test_eta.mu, type = "l")
+abline(v = 2 * atan(eta.mu0) + 2 * atan(eta.mu), lty = 2)
+abline(v = 2 * atan(eta.mu0) + 2 * atan(eta.mu))
 
+abline(v = test_beta - pi, lty = 2)
+plot(2*atan(plt_beta/2), ll, type = "l")
 
 
 ll_fun <- function(eta.mu, eta.kappa, y, log = FALSE) {
