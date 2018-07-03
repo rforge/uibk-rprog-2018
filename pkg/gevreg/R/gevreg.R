@@ -5,10 +5,6 @@ gevreg <- function (formula, data, subset, na.action, model = TRUE, y = TRUE,
   cl <- match.call()
   if (missing(data)) 
     data <- environment(formula)
-  if(!missing(gev_params)){
-    if(!is.data.frame(gev_params)) stop("gev_params must be data frame")
-    if (!all(names(gev_params) %in% c("loc","scale","shape"))) stop("columns in data farme gev_params must be named: loc, scale and shape")
-  }
   mf <- match.call(expand.dots = FALSE)
   m <- match(c("formula", "data", "subset", "na.action"), names(mf), 0L)
   mf <- mf[c(1L, m)]
@@ -28,6 +24,19 @@ gevreg <- function (formula, data, subset, na.action, model = TRUE, y = TRUE,
   
   n.stats <- length(levels(data$station))
   n.years <- nrow(data)/n.stats
+  if(missing(gev_params)){
+    m <- matrix(NA,nrow=n.stats,ncol=n.years)
+    for(i in 1:n.stats){
+      v <- eval(parse(text=paste0("data$",all.vars(formula)[1])))
+      m[i,] <- v[which(data$station==i)]
+    }
+    gev_params <- t(apply(m,1,gevmle))
+    gev_params <- data.frame(gev_params)
+    colnames(gev_params) <- c("loc","scale","shape")  
+  } else {
+    if(!is.data.frame(gev_params)) stop("gev_params must be data frame")
+    if (!all(names(gev_params) %in% c("loc","scale","shape"))) stop("columns in data frame gev_params must be named: 'loc', 'scale', 'shape'")
+  } 
   mf$formula <- formula
   mf[[1L]] <- as.name("model.frame")
   mf <- eval(mf, parent.frame())
@@ -58,6 +67,9 @@ gevreg <- function (formula, data, subset, na.action, model = TRUE, y = TRUE,
     rval$y <- Y
   if (x) 
     rval$x <- list(location = X, scale = Z, shape = V)
+  
+  rval$gev_params <- gev_params
+  
   class(rval) <- "gevreg"
   return(rval)
 }

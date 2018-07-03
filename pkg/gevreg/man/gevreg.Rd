@@ -35,7 +35,7 @@ gevreg_control(maxit = 5000, start = NULL, grad = TRUE, ...)
   \item{x, y, z, v}{for \code{gevreg}: logical. If \code{TRUE} the model matrix and
     response matrix used for fitting are returned as part of the returned gevreg object. For \code{gevreg.fit}: \code{x, z, v} are design matrices with regressors for the
     location, scale and shape parameters of the GEV and \code{y} is a vector of observed parameters. }
-    \item{gev_params, gevp}{ GEV parameters at the stations. A data frame with three columns named \emph{loc}, \emph{scale} and \emph{shape}. Each row corresponds to one onservation site.}
+    \item{gev_params, gevp}{ GEV parameters at the stations. A data frame with three columns named \emph{loc}, \emph{scale} and \emph{shape}. Each row corresponds to one onservation site. If not provided, gev_params is created from the data with the function \code{\link{gevmle}} from package \code{\link[SpatialExtremes]{SpatialExtremes}}.}
     
   \item{\dots}{arguments to be used to form the default \code{control} argument
     if it is not supplied directly.}
@@ -57,9 +57,11 @@ gevreg_control(maxit = 5000, start = NULL, grad = TRUE, ...)
 \value{
   An object of class \code{gevreg} which inherits from \code{optimx} with components: 
   \item{coefficients}{ Either all, or if specified e.g. as location, scale or shape the coefficients of the fitted model for the three GEV parameters are returned.}
+  \item{gev_params}{The GEV parameters used to fit the model.}
   \item{loglik}{ The maximised log-likelihood value.}
   \item{x, y, z,v}{ If \code{TRUE} in the call the model matrix and response matrix used for fitting are returned.}
   Refer to \code{\link{optimx}} for a list of return values inherited from there (niter,feval,geval,xtimes,convcode,... ).
+  
   
 }
 
