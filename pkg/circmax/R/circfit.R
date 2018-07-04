@@ -1,57 +1,36 @@
 dist_family_fit <- function(y, x = NULL, start = NULL, weights = NULL, offset = NULL,
                                 cluster = NULL, vcov = FALSE, estfun = TRUE,
-                                object = FALSE, decorrelate = "none", ...)
-    {
-      if(!(is.null(x) || NCOL(x) == 0L)) warning("x not used")
-      if(!is.null(offset)) warning("offset not used")
-#      model <- disttreemodified::distfit(y, family = family, weights = weights, start = start,
-#                                 vcov = vcov, estfun = estfun,
-#                                 censtype= censtype, censpoint = censpoint, ocontrol = ocontrol)
-      model <- circmax:::circfit(y, x, weights = weights, start = start,
-                                 estfun = estfun)
+                                object = FALSE, ...){
+  if(!(is.null(x) || NCOL(x) == 0L)) warning("x not used")
+  if(!is.null(offset)) warning("offset not used")
 
-      ef <- NULL
-      if(estfun) {
-        ef <- as.matrix(model$estfun)
+  model <- circmax:::circfit(y, x, weights = weights, start = start,
+                             offset = offset, estfun = estfun)
 
-        if(decorrelate != "none") {
-          n <- NROW(ef)
-          ef <- ef/sqrt(n)
+  ef <- NULL
+  if(estfun) {
+    ef <- as.matrix(model$estfun)
+    n <- NROW(ef)
+    ef <- ef/sqrt(n)
+  }
+  estfun <- ef
 
-          vcov <- if(decorrelate == "vcov") {
-            vcov(model, type = "link") * n
-          } else {
-            solve(crossprod(ef))
-          }
-
-          root.matrix <- function(X) {
-            if((ncol(X) == 1L)&&(nrow(X) == 1L)) return(sqrt(X)) else {
-              X.eigen <- eigen(X, symmetric = TRUE)
-              if(any(X.eigen$values < 0)) stop("Matrix is not positive semidefinite")
-              sqomega <- sqrt(diag(X.eigen$values))
-              V <- X.eigen$vectors
-              return(V %*% sqomega %*% t(V))
-            }
-          }
-          ef <- as.matrix(t(root.matrix(vcov) %*% t(ef)))
-        }
-      }
-      estfun <- ef
-
-      rval <- list(
-        coefficients = model$coefficients,
-        objfun =  model$objfun,
-        estfun = estfun,
-        object = if(object) model else NULL
-      )
-      return(rval)
-    }
+  rval <- list(
+    coefficients = model$coefficients,
+    objfun =  model$objfun,
+    estfun = estfun,
+    object = if(object) model else NULL
+  )
+  return(rval)
+}
 
 circfit <- function(y, x = NULL, start = NULL, weights = NULL, offset = NULL, ...,
                    cor = FALSE, estfun = TRUE, object = FALSE) {
     # FIXME: cor not needed
+    #if(object) cat("now object = TRUE\n")
 
-    if(!is.null(x)) warning("no regression coefficients are currently taken into account..")
+    if(!(is.null(x) || NCOL(x) == 0L)) warning("no regression coefficients are currently taken into account..")
+    if(!is.null(offset)) warning("offset not used")
 
     ny <- NROW(y)
     allequy <- (length(unique(y)) == 1)
@@ -63,6 +42,7 @@ circfit <- function(y, x = NULL, start = NULL, weights = NULL, offset = NULL, ..
     ## MLE according to Bettina Gruen
     eta <- circmax:::startfun(y, weights = weights, solve_kappa = solve_kappa_Newton_Fourier)
     par <- circmax:::linkinv(eta)
+
     ## Compute loglik
     loglik <- circmax:::ddist(y, eta, log = TRUE, weights = weights, sum = TRUE)
 
@@ -80,9 +60,9 @@ circfit <- function(y, x = NULL, start = NULL, weights = NULL, offset = NULL, ..
     # FIXME: Calculate vc
 
     list(coefficients = par,
-         objfun = -loglik,
+         objfun = - loglik,
          estfun = ef,
-         object = vc)
+         object = if(object) eta else NULL)
 }
 
 ddist <- function(y, eta, log = TRUE, weights = NULL, sum = FALSE) {
@@ -139,7 +119,6 @@ startfun <- function(y, weights = NULL, solve_kappa = solve_kappa_Newton_Fourier
   names(starteta) <- c("tan(mu/2)", "log(kappa)")
   return(starteta)
 }
-
 
 linkfun <- function(par) {
   eta <- c(tan(par[1] / 2), log(par[2]))

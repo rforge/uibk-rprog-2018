@@ -21,8 +21,8 @@ circtree <- function(formula, data, na.action, cor = FALSE, ...)
 
   ## Call mob
   m <- match.call(expand.dots = FALSE)
-  m$fit <- dist_family_fit
-  #m$fit <- circfi
+  #m$fit <- dist_family_fit
+  m$fit <- circfit
   m$formula <- formula
   m$control <- control
   for(n in names(circcontrol)) if(!is.null(circcontrol[[n]])) m[[n]] <- circcontrol[[n]]
