@@ -8,6 +8,6 @@ Author: Harald Schellander [aut, cre]
 Maintainer: Harald Schellander <harald.schellander@zamg.ac.at>
 Depends: R (>= 3.4.0)
 Imports: stats, Formula, optimx, SpatialExtremes
-Suggests: extRemes, ggplot2
+Suggests: extRemes, ggplot2, colorspace
 Description: Fit a GEV distribution via maximum likelihood spatially to observations.
 License: GPL-2 | GPL-3

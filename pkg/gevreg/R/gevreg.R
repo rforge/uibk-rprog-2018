@@ -154,7 +154,6 @@ gevreg_fit <- function (x, y, z = NULL, v = NULL, n.stats, n.years, gevp, contro
       summand = -n.obs * log(iscale) - (1 + 1/iscale) * 
         sum(1/2 * log(val^2)) - sum(exp((-1/ishape) * 
                                           1/2 * log(val^2)))
-      if(is.na(summand))  print(iscale)
       sum = sum + summand[1]
     }
     -sum
@@ -179,7 +178,11 @@ gevreg_fit <- function (x, y, z = NULL, v = NULL, n.stats, n.years, gevp, contro
     start.loc <- glm.fit(x, ploc)
     start.scale <- glm.fit(z, pscale)
     start.shape <- glm.fit(v, pshape)
-    start <- c(start.loc$coefficients,start.scale$coefficients,start.shape$coefficients)
+    #start <- c(start.loc$coefficients,log(abs(start.scale$coefficients)),start.shape$coefficients)
+    #++start <- c(start.loc$coefficients,abs(start.scale$coefficients),start.shape$coefficients)
+    #start.scale.log <- log(abs(start.scale$coefficients)) #[1]),start.scale$coefficients[2:p]
+    start.scale.log <- c(log(start.scale$coefficients[1]),abs(start.scale$coefficients[2:p]))
+    start <- c(start.loc$coefficients,start.scale.log,start.shape$coefficients)
   }
   else {
     start <- control$start
@@ -269,7 +272,7 @@ print.gevreg <- function(x, digits = max(3, getOption("digits") - 3), ...){
     cat("\nCoefficients (location model):\n")
     locs <- x$coefficients$location
     print.default(format(locs, digits = digits), print.gap = 2, quote = FALSE)
-    cat("\nCoefficients (scale model):\n")
+    cat("\nCoefficients (scale model with log link):\n")
     scales <- x$coefficients$scale
     print.default(format(scales, digits = digits), print.gap = 2, quote = FALSE)
     cat("\nCoefficients (shape model):\n")
@@ -334,7 +337,6 @@ pgev.gevreg <- function (q, loc = 0, scale = 1, shape = 0, lower.tail = TRUE)
     stop("invalid scale parameter")
   q <- (q - loc)/scale
   n <- length(loc)
-  
   s0 <- abs(shape) < .Machine$double.eps^0.5
   pos <- abs(shape) > 0 
   p <- rep_len(NA, n)

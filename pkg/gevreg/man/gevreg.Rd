@@ -86,24 +86,24 @@ df <- cbind(gev_params,data.frame(lon = unique(hs$lon), alt = unique(hs$alt)))
 plot(df)
 
 ## Fit GEV to the snow depths of all stations in the dataset
-## by explaining the GEV parameters with smooth functions of spatial covariates
-m0 <- gevreg(formula = hs ~ lon + alt | lat + alt | lon, data = hs, gev_params = gev_params, na.action = NULL)
+## by explaining the GEV parameters with smooth functions of spatial covariates 
+## and the location parameter
+hs$loc <- as.numeric(rep(gev_params$loc,each=nrow(hs)/length(levels(hs$station))))
+m0 <- gevreg(formula = hs ~ lon + alt | lat + alt +loc | lon, 
+             data = hs, gev_params = gev_params, na.action = NULL)
 
 ## Compare different models
-m1 <- gevreg(hs ~ 1, data = hs, gev_params = gev_params, na.action = NULL)
-m2 <- gevreg(hs ~ lon + alt | lat + alt | 1, data = hs, gev_params = gev_params, na.action = NULL)
-m3 <- gevreg(hs ~ lon + alt | lat + alt | alt, data = hs, gev_params = gev_params, na.action = NULL)
-cbind(AIC(m0,m1,m2,m3),loglik=c(logLik(m0),logLik(m1),logLik(m2),logLik(m3)))
+m1 <- gevreg(hs ~ 1 | loc | alt, data = hs, gev_params = gev_params, na.action = NULL)
+cbind(AIC(m0,m1),loglik=c(logLik(m0),logLik(m1)))
 
 ## compare observed and modeled return values for return period of 50 years
-## use only stations with more than 20 years of data
-rl.modeled <- predict(m0, type = "quantile", at = 1-1/25)
+rl.modeled <- predict(m0, type = "quantile", at = 1-1/50)
 rl.observed <- c()
 if(require("extRemes")) {
   for (i in 1:length(levels(hs$station))){
   d <- as.numeric(na.omit(hs$hs[which(hs$station==i)]))
   fit <- fevd(d,type="GEV",method="MLE")
-  rl <- return.level(fit,return.period = 25)
+  rl <- return.level(fit,return.period = 50)
   rl.observed <- c(rl.observed,rl)
 }
 }
@@ -112,7 +112,7 @@ abline(1,1)
 
 
 ## predict GEV parameters for new location
-ungauged <- data.frame(lon=c(14.4,9.58,11.2),lat=c(44.6,44.3,41.23),alt=c(867,1600,2145))
+ungauged <- data.frame(lon=c(14.4,9.58,11.2),lat=c(44.6,44.3,41.23),alt=c(867,1600,2145),loc=c(50,60,80))
 predict(m0, type = "parameter", newdata = ungauged)
 
 }
