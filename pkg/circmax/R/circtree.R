@@ -1,15 +1,11 @@
 ## High-level convenience interface to mob() + circfit()
-circtree <- function(formula, data, na.action, cor = FALSE, ...)
-{
+circtree <- function(formula, data, na.action, control = partykit::mob_control(), ...){
+
   ## Keep call
   cl <- match.call(expand.dots = TRUE)
 
-  ## Use dots for setting up mob_control
-  control <- partykit::mob_control(...)
-  control$ytype <- "matrix"
-
-  ## Control options for circfit
-  circcontrol <- list(cor = cor)
+  ## Use dots for setting up circfit_control
+  circcontrol <- circfit_control(...)
 
   ## Formula
   oformula <- as.formula(formula)
@@ -36,9 +32,21 @@ circtree <- function(formula, data, na.action, cor = FALSE, ...)
   return(rval)
 }
 
+
 ## Methods
 print.circtree <- function(x,
   title = "CIRCULAR tree", objfun = "negative log-likelihood", ...)
 {
   partykit::print.modelparty(x, title = title, objfun = objfun, ...)
 }
+
+
+## control function for circfit
+circfit_control <- function(solve_kappa = solve_kappa_Newton_Fourier, ...) {
+  ctrl <- c(
+    list(solve_kappa = solve_kappa), 
+    list(...)
+  )
+  ctrl
+}
+

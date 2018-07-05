@@ -1,35 +1,11 @@
-dist_family_fit <- function(y, x = NULL, start = NULL, weights = NULL, offset = NULL,
-                                cluster = NULL, vcov = FALSE, estfun = TRUE,
-                                object = FALSE, ...){
-  if(!(is.null(x) || NCOL(x) == 0L)) warning("x not used")
-  if(!is.null(offset)) warning("offset not used")
-
-  model <- circmax:::circfit(y, x, weights = weights, start = start,
-                             offset = offset, estfun = estfun)
-
-  ef <- NULL
-  if(estfun) {
-    ef <- as.matrix(model$estfun)
-    n <- NROW(ef)
-    ef <- ef/sqrt(n)
-  }
-  estfun <- ef
-
-  rval <- list(
-    coefficients = model$coefficients,
-    objfun =  model$objfun,
-    estfun = estfun,
-    object = if(object) model else NULL
-  )
-  return(rval)
-}
-
 circfit <- function(y, x = NULL, start = NULL, weights = NULL, offset = NULL, ...,
-                   cor = FALSE, estfun = TRUE, object = FALSE) {
-    # FIXME: cor not needed
-    #if(object) cat("now object = TRUE\n")
+                    estfun = TRUE, object = FALSE, solve_kappa = solve_kappa_Newton_Fourier) {
 
-    if(!(is.null(x) || NCOL(x) == 0L)) warning("no regression coefficients are currently taken into account..")
+    # TODO: Why is circfit quite often called with object TRUE?!
+    # if(object) cat("now object = TRUE\n")
+
+    if(!(is.null(x) || NCOL(x) == 0L)) warning("no regression coefficients 
+      are currently taken into account..")
     if(!is.null(offset)) warning("offset not used")
 
     ny <- NROW(y)
@@ -40,27 +16,28 @@ circfit <- function(y, x = NULL, start = NULL, weights = NULL, offset = NULL, ..
     # FIXME: change eta to par in all functions and use dvonmises not ddist 
 
     ## MLE according to Bettina Gruen
-    eta <- circmax:::startfun(y, weights = weights, solve_kappa = solve_kappa_Newton_Fourier)
+    eta <- circmax:::startfun(y, weights = weights, solve_kappa = solve_kappa)
     par <- circmax:::linkinv(eta)
 
-    ## Compute loglik
-    loglik <- circmax:::ddist(y, eta, log = TRUE, weights = weights, sum = TRUE)
+    ## Compute negative loglik
+    nll <- -circmax:::ddist(y, eta, log = TRUE, weights = weights, sum = TRUE)
 
     if(estfun) {
       if(allequy) {
         ef <- matrix(0, ncol = length(eta), nrow = ny)
       } else {
         ef <- as.matrix(weights * circmax:::sdist(y, eta, sum = FALSE))
+        n <- NROW(ef)
+        ef <- ef/sqrt(n) # TODO: Is this really necessary ?!
       }
     } else {
       ef <- NULL
     }
 
-    vc <- NULL
-    # FIXME: Calculate vc
+    # FIXME: Calculate vc or vcov ?!
 
     list(coefficients = par,
-         objfun = - loglik,
+         objfun = nll,
          estfun = ef,
          object = if(object) eta else NULL)
 }
