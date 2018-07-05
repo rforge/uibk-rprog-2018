@@ -1,5 +1,5 @@
 circfit <- function(y, x = NULL, start = NULL, weights = NULL, offset = NULL, ...,
-                    estfun = TRUE, object = FALSE, solve_kappa = solve_kappa_Newton_Fourier) {
+                    estfun = TRUE, object = FALSE, circfit_control = circfit_control()) {
 
     # TODO: Why is circfit quite often called with object TRUE?!
     # if(object) cat("now object = TRUE\n")
@@ -12,6 +12,11 @@ circfit <- function(y, x = NULL, start = NULL, weights = NULL, offset = NULL, ..
     allequy <- (length(unique(y)) == 1)
     if(is.null(weights) || (length(weights)==0L)) weights <- as.vector(rep.int(1, ny))
 
+    ## control parameters
+    control <- circfit_control
+    ocontrol <-    control
+    solve_kappa <- control$solve_kappa
+    control$solve_kappa <- NULL
 
     # FIXME: change eta to par in all functions and use dvonmises not ddist 
 

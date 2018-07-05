@@ -1,11 +1,9 @@
 ## High-level convenience interface to mob() + circfit()
-circtree <- function(formula, data, na.action, control = partykit::mob_control(), ...){
+circtree <- function(formula, data, na.action, 
+                     mob_control = partykit::mob_control(), control = circfit_control(...), ...){
 
   ## Keep call
   cl <- match.call(expand.dots = TRUE)
-
-  ## Use dots for setting up circfit_control
-  circcontrol <- circfit_control(...)
 
   ## Formula
   oformula <- as.formula(formula)
@@ -20,8 +18,9 @@ circtree <- function(formula, data, na.action, control = partykit::mob_control()
   #m$fit <- dist_family_fit
   m$fit <- circfit
   m$formula <- formula
-  m$control <- control
-  for(n in names(circcontrol)) if(!is.null(circcontrol[[n]])) m[[n]] <- circcontrol[[n]]
+  m$control <- mob_control
+  m$circfit_control <- control
+  #for(n in names(control)) if(!is.null(control[[n]])) m[[n]] <- control[[n]]
   if("..." %in% names(m)) m[["..."]] <- NULL
   m[[1L]] <- as.call(quote(partykit::mob))
   rval <- eval(m, parent.frame())
@@ -35,7 +34,8 @@ circtree <- function(formula, data, na.action, control = partykit::mob_control()
 
 ## Methods
 print.circtree <- function(x,
-  title = "CIRCULAR tree", objfun = "negative log-likelihood", ...)
+  title = "Circular distribution tree, employing the Von Mises Distribution", 
+  objfun = "negative log-likelihood", ...)
 {
   partykit::print.modelparty(x, title = title, objfun = objfun, ...)
 }
