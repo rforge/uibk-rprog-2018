@@ -1,22 +1,30 @@
-circfit <- function(y, x = NULL, start = NULL, weights = NULL, offset = NULL, ...,
-                    estfun = TRUE, object = FALSE, circfit_control = circfit_control()) {
+circfit <- function(y, x = NULL, start = NULL, subset = NULL, na.action = NULL, 
+                    weights = NULL, offset = NULL, ...,
+                    estfun = TRUE, object = FALSE, fit_control = circfit_control()) {
 
-    # TODO: Why is circfit quite often called with object TRUE?!
+    # TODO: Why is circfit quite often called with object TRUE and what are the start values used for?!
     # if(object) cat("now object = TRUE\n")
 
+    # Check unsupported arguments
     if(!(is.null(x) || NCOL(x) == 0L)) warning("no regression coefficients 
       are currently taken into account..")
-    if(!is.null(offset)) warning("offset not used")
+    if(!is.null(subset)) warning("'subset' currently not supported and therefore not used")
+    if(!is.null(na.action)) warning("'na.action' currently not supported and therefore not used")
+    if(!is.null(offset)) warning("'offset' currently not supported and therefore not used")
 
+    ## Convenience variables
     ny <- NROW(y)
     allequy <- (length(unique(y)) == 1)
+    
+    ## Weights
     if(is.null(weights) || (length(weights)==0L)) weights <- as.vector(rep.int(1, ny))
+    if(unique(weights) == 0L) stop("weights are not allowed to be all zero")
+    if(length(weights) != ny) stop("number of observations and length of weights are not equal")
 
-    ## control parameters
-    control <- circfit_control
-    ocontrol <-    control
-    solve_kappa <- control$solve_kappa
-    control$solve_kappa <- NULL
+
+    ## Control parameters
+    solve_kappa <- fit_control$solve_kappa
+    fit_control$solve_kappa <- NULL
 
     # FIXME: change eta to par in all functions and use dvonmises not ddist 
 
@@ -40,11 +48,12 @@ circfit <- function(y, x = NULL, start = NULL, weights = NULL, offset = NULL, ..
     }
 
     # FIXME: Calculate vc or vcov ?!
-
+    model <- list()
+    
     list(coefficients = par,
          objfun = nll,
          estfun = ef,
-         object = if(object) eta else NULL)
+         object = if(object) model else NULL)
 }
 
 ddist <- function(y, eta, log = TRUE, weights = NULL, sum = FALSE) {
