@@ -13,33 +13,33 @@ circfit <- function(y, x = NULL, start = NULL, subset = NULL, na.action = NULL,
     if(!is.null(offset)) warning("'offset' currently not supported and therefore not used")
 
     ## Convenience variables
-    ny <- NROW(y)
+    n <- NROW(y)
     allequy <- (length(unique(y)) == 1)
     
     ## Weights
-    if(is.null(weights) || (length(weights)==0L)) weights <- as.vector(rep.int(1, ny))
+    if(is.null(weights) || (length(weights)==0L)) weights <- as.vector(rep.int(1, n))
     if(unique(weights) == 0L) stop("weights are not allowed to be all zero")
-    if(length(weights) != ny) stop("number of observations and length of weights are not equal")
-
+    if(length(weights) != n) stop("number of observations and length of weights are not equal")
 
     ## Control parameters
     solve_kappa <- fit_control$solve_kappa
     fit_control$solve_kappa <- NULL
 
-    # FIXME: change eta to par in all functions and use dvonmises not ddist 
+    ## Get Von Mises family functions (for interchangeability the same distlist is used)
+    circfam <- dist_vonmises() 
 
     ## MLE according to Bettina Gruen
-    eta <- circmax:::startfun(y, weights = weights, solve_kappa = solve_kappa)
-    par <- circmax:::linkinv(eta)
+    eta <- circfam$startfun(y, weights = weights, solve_kappa = solve_kappa)
+    par <- circfam$linkinv(eta)
 
     ## Compute negative loglik
-    nll <- -circmax:::ddist(y, eta, log = TRUE, weights = weights, sum = TRUE)
+    nll <- -circfam$ddist(y, eta, log = TRUE, weights = weights, sum = TRUE)
 
     if(estfun) {
       if(allequy) {
-        ef <- matrix(0, ncol = length(eta), nrow = ny)
+        ef <- matrix(0, ncol = length(eta), nrow = n)
       } else {
-        ef <- as.matrix(weights * circmax:::sdist(y, eta, sum = FALSE))
+        ef <- as.matrix(weights * circfam$sdist(y, eta, sum = FALSE))
         n <- NROW(ef)
         ef <- ef/sqrt(n) # TODO: Is this really necessary ?!
       }
@@ -55,109 +55,3 @@ circfit <- function(y, x = NULL, start = NULL, subset = NULL, na.action = NULL,
          estfun = ef,
          object = if(object) model else NULL)
 }
-
-ddist <- function(y, eta, log = TRUE, weights = NULL, sum = FALSE) {
-
-  par <- circmax:::linkinv(eta)
-
-  if (any(par[2] < 0)) {
-    stop("kappa must be non-negative")
-  }
-  be <- besselI(par[2], nu = 0, expon.scaled = TRUE)
-  val <- - log(2 * pi * be) + par[2] * (cos(y - par[1]) - 1)
-  if (!log) {
-    val <- exp(val)
-  }
-
-  if(sum) {
-    if(is.null(weights) || (length(weights)==0L)) weights <- rep.int(1, length(y))
-    val <- sum(weights * val, na.rm = TRUE)
-  }
-  
-  return(val)
-}
-
-sdist <- function(y, eta, weights = NULL, sum = FALSE) {
-  #par <- linkinv(eta)
-  par <- c(2 * atan(eta[1]), exp(eta[2]))
-  score <- cbind(drop(2 * par[2] * sin(y - par[1]) / ((tan(par[1]/2))^2 + 1) ),
-                 drop(par[2] * (cos(y - par[1])
-                  - besselI(par[2], nu = 1, expon.scaled = TRUE) / besselI(par[2], nu = 0, expon.scaled = TRUE))))
-
-  score <- as.matrix(score)
-  colnames(score) <- c("tan(mu/2)", "log(kappa)")
-  if(sum) {
-    if(is.null(weights) || (length(weights)==0L)) weights <- rep.int(1, length(y))
-    # if score == Inf replace score with 1.7e308 because Inf*0 would lead to NaN -> gradient is NaN
-    score[score==Inf] = 1.7e308
-    score <- colSums(weights * score, na.rm = TRUE)
-  }
-  return(score)
-}
-
-startfun <- function(y, weights = NULL, solve_kappa = solve_kappa_Newton_Fourier) {
-  x <- cbind(cos(y), sin(y))
-  if (is.null(weights) || (length(weights)==0L)) {
-      xbar <- colMeans(x)
-  } else {
-      xbar <- colMeans(weights * x) / mean(weights)
-  }
-  mu <- atan(xbar[2] /xbar[1]) + (xbar[1] < 0) * sign(xbar[2]) * pi
-  rbar <- sqrt(sum(xbar^2))
-  kappa <- solve_kappa(rbar)
-
-  starteta <- c(tan(mu / 2), log(kappa))
-  names(starteta) <- c("tan(mu/2)", "log(kappa)")
-  return(starteta)
-}
-
-linkfun <- function(par) {
-  eta <- c(tan(par[1] / 2), log(par[2]))
-  names(eta) <- c("tan(mu/2)", "log(kappa)")
-  return(eta)
-}
-
-linkinv <- function(eta) {
-  par <- c(2 * atan(eta[1]), exp(eta[2]))
-  names(par) <- c("mu", "kappa")
-  return(par)
-}
-
-## Package movMF implements different kappa solvers:
-## o Newton Fourier is used by default.
-## o Uniroot seems to provide a safe option.
-## o Banerjee_et_al_2005 provides a quick approximation.
-solve_kappa_Newton_Fourier <- function (r, tol = 1e-06, maxiter = 100L) {
-    lower <- movMF:::Rinv_lower_Amos_bound(r, 0)
-    upper <- movMF:::Rinv_upper_Amos_bound(r, 0)
-    iter <- 1L
-    while (iter <= maxiter) {
-        A <- movMF:::A(lower, 2)
-        Aprime <- movMF:::Aprime(lower, 2, A = A)
-        lower <- lower - (A - r)/Aprime
-        A <- movMF:::A(upper, 2)
-        upper <- upper - (A - r)/Aprime
-        if ((upper - lower) < tol * (lower + upper)) {
-            if ((upper - lower) < -tol * (lower + upper)) 
-                stop("no convergence")
-            break
-        }
-        iter <- iter + 1L
-    }
-    (lower + upper)/2
-}
-
-solve_kappa_uniroot <- function(r, tol = 1e-06) {
-    interval <- c(movMF:::Rinv_lower_Amos_bound(r, 0),
-                  movMF:::Rinv_upper_Amos_bound(r, 0))
-    if (abs(diff(interval)) < tol) 
-        mean(interval)
-    else uniroot(function(kappa) movMF:::A(kappa, 2) - r,
-                 interval = interval, tol = tol)$root
-}
-
-solve_kappa_Banerjee_et_al_2005 <- function(r) {
-   r * (2 - r^2)/(1 - r^2)
-}
-
-

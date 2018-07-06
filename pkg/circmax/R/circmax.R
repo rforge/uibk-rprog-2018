@@ -6,14 +6,14 @@ circmax <- function(formula, data, subset, na.action,
   cl <- match.call()
   if(missing(data)) data <- environment(formula)
   mf <- match.call(expand.dots = FALSE)
-  m <- match(c("formula", "data", "subset", "na.action"), names(mf), 0L)
+  m <- match(c("formula", "data", "subset", "na.action"), names(mf), 0L)    # reorder function parameters
   mf <- mf[c(1L, m)]
-  mf$drop.unused.levels <- TRUE
+  mf$drop.unused.levels <- TRUE   # dropping unused factor variables in model.frame
 
   ## Formula
   oformula <- as.formula(formula)
   formula <- Formula::as.Formula(formula)
-  if(length(formula)[2L] < 2L) {
+  if(length(formula)[2L] < 2L) {    # formula consits of lhs (=resonse) and rhs (=parameters)
     formula <- Formula::as.Formula(formula(formula), ~ 1)
   } else {
     if(length(formula)[2L] > 2L) {
@@ -43,7 +43,7 @@ circmax <- function(formula, data, subset, na.action,
   n <- length(Y)
 
   ## Call the actual workhorse: circmax_fit()
-  rval <- circmax_fit(X, Y, Z, control, which.method = which.method)
+  rval <- circmax_fit(X, Y, Z, control)
 
   ## Further model information
   rval$call <- cl
@@ -58,8 +58,7 @@ circmax <- function(formula, data, subset, na.action,
   return(rval)
 }
 
-circmax_control <- function(maxit = 5000, start = NULL, ...)
-{
+circmax_control <- function(maxit = 5000, start = NULL, ...) {
   ctrl <- c(
     list(maxit = maxit,
     start = start), list(...)
@@ -74,7 +73,7 @@ circmax_fit <- function(x, y, z = NULL, control, which.method = "default")
 {
   ## Dimensions
   n <- length(y)
-  if(is.null(z)) z <- matrix(1, n, 1, dimnames = list(rownames(x), "(Intercept)"))  # CHECK HTOBIT!!!
+  if(is.null(z)) z <- matrix(1, n, 1, dimnames = list(rownames(x), "(Intercept)"))
   m <- ncol(x)  
   p <- ncol(z)
   stopifnot(n == nrow(x), n == nrow(z))
