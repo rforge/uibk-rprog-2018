@@ -1,6 +1,6 @@
 circmax <- function(formula, data, subset, na.action,
   model = TRUE, y = TRUE, x = FALSE,
-  control = circmax_control(...), which.method = "default", ...)
+  control = circmax_control(...), ...)
 {
   ## Call
   cl <- match.call()
@@ -58,10 +58,11 @@ circmax <- function(formula, data, subset, na.action,
   return(rval)
 }
 
-circmax_control <- function(maxit = 5000, start = NULL, ...) {
+circmax_control <- function(maxit = 5000, start = NULL, method = "Nelder-Mead", 
+  solve_kappa = solve_kappa_Newton_Fourier, gradient = FALSE, ...) {
   ctrl <- c(
-    list(maxit = maxit,
-    start = start), list(...)
+    list(maxit = maxit, start = start, method = method, gradient = gradient, solve_kappa = solve_kappa), 
+    list(...)
   )
   if(!is.null(ctrl$fnscale)) warning("fnscale must not be modified")
   ctrl$fnscale <- 1
@@ -69,8 +70,7 @@ circmax_control <- function(maxit = 5000, start = NULL, ...) {
   ctrl
 }
 
-circmax_fit <- function(x, y, z = NULL, control, which.method = "default")
-{
+circmax_fit <- function(x, y, z = NULL, control) {
   ## Dimensions
   n <- length(y)
   if(is.null(z)) z <- matrix(1, n, 1, dimnames = list(rownames(x), "(Intercept)"))
@@ -78,104 +78,58 @@ circmax_fit <- function(x, y, z = NULL, control, which.method = "default")
   p <- ncol(z)
   stopifnot(n == nrow(x), n == nrow(z))
 
+  ## clean up control arguments
+  method <- control$method
+  gradient <- control$gradient
+  solve_kappa <- control$solve_kappa
+  control$method <- control$gradient <- control$solve_kappa <- NULL
+
   ## Negative log-likelihood and gradients   
-  if (which.method == "default"){
-    nll <- function(par) {
-      beta <- par[1:m]
-      gamma <- par[m + (1:p)]
-      mu <- 2 * atan(x[, 1, drop = FALSE] %*% beta[1]) + 2 * atan(x[, -1, drop = FALSE] %*% beta[-1])
-      kappa <- exp(z %*% gamma)
-      ll <- dvonmises(y, mu = mu, kappa = kappa, log = TRUE)
-      -sum(ll)
-    }
+  nll <- function(par) {
+    beta <- par[1:m]
+    gamma <- par[m + (1:p)]
+    mu <- 2 * atan(x[, 1, drop = FALSE] %*% beta[1]) + 2 * atan(x[, -1, drop = FALSE] %*% beta[-1])
+    kappa <- exp(z %*% gamma)
+    ll <- dvonmises(y, mu = mu, kappa = kappa, log = TRUE)
+    -sum(ll)
+  }
 
-    gr <- function(par) {
-      beta <- par[1:m]
-      gamma <- par[m + (1:p)]
-      mu0 <- 2 * atan(x[, 1, drop = FALSE] %*% beta[1])
-      if(m > 1){
-        mu <- 2 * atan(x[, -1, drop = FALSE] %*% beta[-1])
-      } else { 
-        mu <- 0
-      }
-      kappa <- exp(z %*% gamma)
-      
-      gr_mu0 <- 2 * kappa * sin(y - mu0 - mu) / (tan(mu0 / 2)^2 + 1) 
-      if(m > 1){
-        gr_mu <- 2 * kappa * sin(y - mu0 - mu) / (tan(mu / 2)^2 + 1) 
-      }
-      gr_kappa <- kappa * (cos(y - mu0 - mu) - 
-        besselI(kappa, nu = 0, expon.scaled = TRUE) /besselI(kappa, nu = 1, expon.scaled = TRUE))
-      gr <- numeric(length(par))
-      gr[1] <- t(x[, 1, drop = FALSE]) %*% gr_mu0
-      if(m > 1){
-        gr[2:m] <- t(x[, -1, drop = FALSE]) %*% gr_mu
-      }
-      gr[m + (1:p)] <- t(z) %*% gr_kappa
-      return(-gr)
+  gr <- function(par) {
+    beta <- par[1:m]
+    gamma <- par[m + (1:p)]
+    mu0 <- 2 * atan(x[, 1, drop = FALSE] %*% beta[1])
+    if(m > 1){
+      mu <- 2 * atan(x[, -1, drop = FALSE] %*% beta[-1])
+    } else { 
+      mu <- 0
     }
+    kappa <- exp(z %*% gamma)
+    
+    gr_mu0 <- 2 * kappa * sin(y - mu0 - mu) / (tan(mu0 / 2)^2 + 1) 
+    if(m > 1){
+      gr_mu <- 2 * kappa * sin(y - mu0 - mu) / (tan(mu / 2)^2 + 1) 
+    }
+    gr_kappa <- kappa * (cos(y - mu0 - mu) - 
+      besselI(kappa, nu = 0, expon.scaled = TRUE) /besselI(kappa, nu = 1, expon.scaled = TRUE))
+    gr <- numeric(length(par))
+    gr[1] <- t(x[, 1, drop = FALSE]) %*% gr_mu0
+    if(m > 1){
+      gr[2:m] <- t(x[, -1, drop = FALSE]) %*% gr_mu
+    }
+    gr[m + (1:p)] <- t(z) %*% gr_kappa
+    return(-gr)
+  }
 
-  } else if (which.method == "version1") { 
-    nll <- function(par) {
-      beta <- par[1:m]
-      gamma <- par[m + (1:p)]
-      mu <- x[, 1, drop = FALSE] %*% beta[1] + 2 * atan(x[, -1, drop = FALSE] %*% beta[-1])
-      kappa <- exp(z %*% gamma)
-      ll <- dvonmises(y, mu = mu, kappa = kappa, log = TRUE)
-      -sum(ll)
-    }
-  } else if (which.method == "version2") { 
-    nll <- function(par) {
-      beta <- par[1:m]
-      gamma <- par[m + (1:p)]
-      mu <- 2 * atan(x %*% beta)
-      kappa <- exp(z %*% gamma)
-      ll <- dvonmises(y, mu = mu, kappa = kappa, log = TRUE)
-      -sum(ll)
-    }
-  } else if (which.method %in% c("L-BFGS-B", "L-BFGS-B-GR")) {
-    nll <- function(par) {
-      beta <- par[1:m]
-      gamma <- par[m + (1:p)]
-      mu <- 2 * atan(x[, 1, drop = FALSE] %*% beta[1]) + 2 * atan(x[, -1, drop = FALSE] %*% beta[-1])
-      kappa <- exp(z %*% gamma)
-      ll <- dvonmises(y, mu = mu, kappa = kappa, log = TRUE)
-      rval <- -sum(ll)
-      if(is.infinite(rval)){
-        s <- sign(rval)
-        rval <- 10e9 * s
-      }
-      return(rval)
-    }
-    gr <- function(par) {
-      beta <- par[1:m]
-      gamma <- par[m + (1:p)]
-      mu0 <- 2 * atan(x[, 1, drop = FALSE] %*% beta[1])
-      if(m > 1){
-        mu <- 2 * atan(x[, -1, drop = FALSE] %*% beta[-1])
-      } else { 
-        mu <- 0
-      }
-      kappa <- exp(z %*% gamma)
-      
-      gr_mu0 <- 2 * kappa * sin(y - mu0 - mu) / (tan(mu0 / 2)^2 + 1) 
-      if(m > 1){
-        gr_mu <- 2 * kappa * sin(y - mu0 - mu) / (tan(mu / 2)^2 + 1) 
-      }
-      gr_kappa <- kappa * (cos(y - mu0 - mu) - 
-        besselI(kappa, nu = 0, expon.scaled = TRUE) /besselI(kappa, nu = 1, expon.scaled = TRUE))
-      gr <- numeric(length(par))
-      gr[1] <- t(x[, 1, drop = FALSE]) %*% gr_mu0
-      if(m > 1){
-        gr[2:m] <- t(x[, -1, drop = FALSE]) %*% gr_mu
-      }
-      gr[m + (1:p)] <- t(z) %*% gr_kappa
-      return(-gr)
-    }
-  } 
   ## Starting values (by default zeros)
   if(is.null(control$start)) {
+    ## MLE according to Bettina Gruen
+    circfam <- dist_vonmises()
+    eta <- circfam$startfun(y, weights = NULL, solve_kappa = solve_kappa)
+    
     start <- rep(0, m + p)
+    start[1] <- eta[1] 
+    start[m + 1] <- eta[2] 
+    browser()
   } else {
     start <- control$start
     stopifnot(length(start) == m + p)
@@ -183,19 +137,20 @@ circmax_fit <- function(x, y, z = NULL, control, which.method = "default")
   control$start <- NULL
 
   ## Optimization
-  if (which.method == "L-BFGS-B") { 
-    opt <- optim(par = start, fn = nll, control = control, method = "L-BFGS-B")
-  } else if (which.method == "L-BFGS-B-GR") {
+  if(gradient){ 
+    if(method != "L-BFGS") warning("switched to method 'L-BFGS-B' to take into 'gradient = TRUE'")
     opt <- optim(par = start, fn = nll, control = control, method = "L-BFGS-B", gr = gr)
   } else { 
-    opt <- optim(par = start, fn = nll, control = control)
+    opt <- optim(par = start, fn = nll, method = method, control = control)
   }
+
   ## Collect information
   names(opt)[1:2] <- c("coefficients", "loglik")
   opt$coefficients <- list(
     location = opt$coefficients[1:m],
     scale = opt$coefficients[m + 1:p]
   )
+
   names(opt$coefficients$location) <- colnames(x)
   names(opt$coefficients$scale) <- colnames(z)
   opt$loglik <- -opt$loglik
@@ -274,8 +229,8 @@ model.matrix.circmax <- function(object, model = c("location", "scale"), ...) {
 
 predict.circmax <- function(object, newdata = NULL,
   type = c("location", "scale", "parameter", "probability", "quantile"),
-  na.action = na.pass, at = 0.5, ...)
-{
+  na.action = na.pass, at = 0.5, ...) {
+
   ## Types of prediction
   type <- match.arg(type)
 
