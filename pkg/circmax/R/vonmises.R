@@ -34,13 +34,7 @@ vonmises_bamlss <- function(...) {
             "mu" = function(y, par, ...) {
                drop(2 * par$kappa * sin(y - par$mu) / ((tan(par$mu/2))^2 + 1) )
             },
-            "kappa" = function(y, par, ...) {
-               drop(par$kappa * (cos(y - par$mu)
-                    - besselI(par$kappa, nu = 1, expon.scaled = TRUE) / besselI(par$kappa, nu = 0, expon.scaled = TRUE)))
-            }
-         ),
-         "hess" = list(
-            "mu" = function(y, par, ...) {
+            "kappa" = function(y, par, ...)  {
                ta <- tan(par$mu/2)
                drop(4 * par$kappa / (ta^2 + 1)^2 * (sin(y - par$mu) * ta + cos(y - par$mu)))
             },
@@ -83,6 +77,7 @@ dist_vonmises <- function() {
   return(val)
   }
 
+  # FIXME: I used the sdist for the estfun in the regression context. Wrong results, as only first two parameters are used (No matrix!)
   sdist <- function(y, eta, weights = NULL, sum = FALSE) {
     par <- linkinv(eta)
     # CAUTION: this is the score as in bamlss: d(l)/d(eta) = d(l)/d(mu) * d(mu)/d(eta) and d(l)/d(eta) = d(l)/d(kappa) * d(mu)/d(kappa)

@@ -21,6 +21,8 @@ circtree <- function(formula, data, start, subset, na.action, weights, offset,
   morder <- match(c("formula", "data", "start", "subset", "na.action", "weights", "offset"), names(m), 0L)
   m <- m[c(1L, morder)]
   m$fit <- circfit
+  # FIXME: circfit is called with all default values. How can I change estfun and object as user 
+    # (tried control arguments but then two parameters were in the function call) ?!
   m$formula <- formula
   m$control <- control
   m$fit_control <- fit_control
@@ -56,7 +58,7 @@ print.circtree <- function(x, title = "Circular distribution tree, employing the
 
 ## Predict method
 predict.circtree <- function (object, newdata = NULL, type = c("parameter", "node"), OOB = FALSE, ...) {
-  # FIXME: Implement prediciton for response, currently not working probably to not supported methods for circfit
+  # FIXME: Implement prediciton for response, currently not working probably due to not supported methods for circfit
 
   # set default to 'parameter'
   if(length(type)>1) type <- type[1]
@@ -91,3 +93,18 @@ logLik.circtree <- function(object) {
   return(structure(-nll, df = ncol(coef(object)) * width(object) + width(object) - 1 , class = "logLik"))
 }
 
+
+## Simulate data
+circtree_simulate <- function(n = 1000, mu = c(0, 2, 1), kappa = c(3, 3, 1), seet = 111){
+  # FIXME: Extend to more general cases
+  set.seed(seet)
+  d <- data.frame(x1 = runif(n, -1, 1), x2 = runif(n, -1, 1))
+  d$group <- ifelse(d$x1 < 0, 1, ifelse(d$x2 < 0, 2, 3))
+  d$mu <- mu[d$group]
+  d$kappa <- kappa[d$group]
+
+  for(i in 1:n){
+    d[i, "y"] <- circular::rvonmises(1, mu = circular::circular(d$mu[i]), kappa = d$kappa[i])
+  }
+  return(d)
+}

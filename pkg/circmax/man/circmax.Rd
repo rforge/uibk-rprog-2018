@@ -78,7 +78,7 @@ dgp <- function(n = 1000, beta = c(3, 5, 2), gamma = c(3, 3)) {
   d <- data.frame(d)
   d$y <- NULL
   for(i in 1:n) {
-    d[i, "y"] <- circular::rvonmises(1, mu = circular(mu[i]), kappa = kappa[i])
+    d[i, "y"] <- circular::rvonmises(1, mu = circular::circular(mu[i]), kappa = kappa[i])
   }
   return(d)
 }
