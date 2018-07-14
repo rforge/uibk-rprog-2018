@@ -1,0 +1,7 @@
+## TO-DO List (2018-07-07)
+
+* Check estfun() and vcov()
+* Include shiny app (simulation)
+* Factors outside
+* Penalty on the regression coefficients
+* Improve plotting function
