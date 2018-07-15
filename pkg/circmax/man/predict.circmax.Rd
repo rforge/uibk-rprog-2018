@@ -8,9 +8,9 @@ Obtains various types of predictions for \code{circmax} models.
 }
 
 \usage{
-\method{predict}{circmax}(object, newdata = NULL, type = c("location", "scale", 
-  "parameter", "probability", "quantile"), 
-  na.action = na.pass, at = 0.5, \dots)
+\method{predict}{circmax}(object, newdata = NULL, type = c("location", "concentration", 
+  "parameter"), 
+  na.action = na.pass, \dots)
 }
 
 \arguments{
@@ -21,14 +21,9 @@ Obtains various types of predictions for \code{circmax} models.
   the predicted distribution.
   \code{"scale"} returns the scale of the predicted distribution.
   \code{"parameter"} returns a data frame with predicted location and scale 
-  parameters.
-  \code{"probability"} evaluates the predictive CDF at \code{at}.
-  \code{"quantile"} returns a matrix of predicted quantiles with quantile
-  probabilities \code{at}.}
+  parameters.}
   \item{na.action}{a function which indicates what should happen when the data
   contain \code{NA}s. Default is na.pass}
-  \item{at}{a vector of values to evaluate the predictive probability (\code{type = "probability"}), 
-  or a vector of quantile probabilities used for \code{type =  "quantile"}.}
   \item{\dots}{further arguments passed to or from other methods.}
 }
 

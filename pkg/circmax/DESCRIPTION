@@ -5,6 +5,5 @@ Authors@R: person(given = "Moritz N.", family = "Lang", role = c("aut", "cre"), 
 Description: Maximum likelihood estimation for a circular response.
 Depends: R (>= 3.4.0)
 License: GPL-2 | GPL-3
-Imports: stats, circular, Formula
-Suggests: colorspace
-RoxygenNote: 6.0.1
+Imports: stats, circular, Formula, partykit, movMF, colorspace, shiny, gridGraphics, grDevices, sandwich
+Suggests: disttree, bamlss

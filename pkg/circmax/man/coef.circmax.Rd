@@ -5,6 +5,8 @@
 \alias{terms.circmax}
 \alias{model.frame.circmax}
 \alias{model.matrix.circmax}
+\alias{estfun.circmax}
+\alias{vcov.circmax}
 
 \title{Methods for CIRCMAX Objects}
 
@@ -13,8 +15,8 @@ Methods for extracting information from fitted \code{circmax} objects.
 }
 
 \usage{
-\method{coef}{circmax}(object, model = c("full", "location", "scale"), \dots)
-\method{terms}{circmax}(x, model = c("location", "scale", "full"), \dots)
+\method{coef}{circmax}(object, model = c("full", "location", "concentration"), \dots)
+\method{terms}{circmax}(x, model = c("location", "concentration", "full"), \dots)
 }
 
 \arguments{
@@ -27,7 +29,8 @@ Methods for extracting information from fitted \code{circmax} objects.
   In addition to the methods above, a set of standard extractor functions for
   \code{"circmax"} objects is available, including methods to the generic
   functions \code{\link[base]{print}}, \code{\link[stats]{logLik}}, 
-  and  \code{\link[stats]{model.frame}}.
+  and \code{\link[stats]{model.frame}}. Additionally, \code{\link[sandwich]{estfun}},
+  \code{\link[stats]{vcov}} provide methods for 'robust' inference.
 }
 
 \seealso{\code{\link{circmax}}}
