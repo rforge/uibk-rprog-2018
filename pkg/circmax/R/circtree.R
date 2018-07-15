@@ -86,18 +86,18 @@ coef.circtree <- function(object, ...){
 
 
 ## Loglik method
-logLik.circtree <- function(object) {
+logLik.circtree <- function(object, ...) {
   tmp <- partykit::nodeapply(object, ids = partykit::nodeids(object, terminal = TRUE), 
     FUN = function(n) partykit::info_node(n)$objfun)
   nll <- sum(unlist(tmp))
-  return(structure(-nll, df = ncol(coef(object)) * width(object) + width(object) - 1 , class = "logLik"))
+  return(structure(-nll, df = ncol(coef(object)) * partykit::width(object) + partykit::width(object) - 1 , class = "logLik"))
 }
 
 
 ## Simulate data
-circtree_simulate <- function(n = 1000, mu = c(0, 2, 1), kappa = c(3, 3, 1), seet = 111){
+circtree_simulate <- function(n = 1000, mu = c(0, 2, 1), kappa = c(3, 3, 1), seed = 111){
   # FIXME: Extend to more general cases
-  set.seed(seet)
+  set.seed(seed)
   d <- data.frame(x1 = runif(n, -1, 1), x2 = runif(n, -1, 1))
   d$group <- ifelse(d$x1 < 0, 1, ifelse(d$x2 < 0, 2, 3))
   d$mu <- mu[d$group]

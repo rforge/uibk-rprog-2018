@@ -233,8 +233,8 @@ model.matrix.circmax <- function(object, model = c("location", "concentration"),
 }
 
 predict.circmax <- function(object, newdata = NULL,
-  type = c("location", "concentration", "parameter", "probability", "quantile"),
-  na.action = na.pass, at = 0.5, ...) {
+  type = c("location", "concentration", "parameter"),
+  na.action = na.pass, ...) {
 
   ## Types of prediction
   type <- match.arg(type)
@@ -267,9 +267,7 @@ predict.circmax <- function(object, newdata = NULL,
   rval <- switch(type,
     "location" = location,
     "concentration" = concentration,
-    "parameter" = data.frame(location, concentration),
-    "probability" = circular::pvonmises(at, mean = location, sd = concentration),
-    "quantile" = circular::qvonmises(at, mean = location, sd = concentration)
+    "parameter" = data.frame(location, concentration)
   )
   return(rval)
 }
@@ -346,7 +344,7 @@ vcov.circmax <- function(object, ...){
   return(rval)
 }
 
-circmax_simulate <- function(n = 1000, beta = c(3, 5, 2), gamma = c(3, 3), seet = 111) {
+circmax_simulate <- function(n = 1000, beta = c(3, 5, 2), gamma = c(3, 3), seed = 111) {
   set.seed(seed)
   m <- length(beta) - 1  # here: number of betas minus intercept
   p <- length(gamma) -1  # here: number of gammas minus intercept

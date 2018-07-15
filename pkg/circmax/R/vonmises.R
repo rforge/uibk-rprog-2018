@@ -1,3 +1,8 @@
+## Run Von Mises App
+vonmises_shinyapp <- function(...){
+shiny::runApp(system.file("R", "app.R", package = "circmax"), ...)
+}
+
 ## Density Von Mises 
 ## CAUTION: Different to dist_vonmises$dd(), as the latter takes only 2-values (no matrices!!)
 dvonmises <- function(y, mu, kappa, log = FALSE) {
@@ -252,5 +257,4 @@ solve_kappa_Newton_Fourier) {
     names(starteta) <- etanames
     return(starteta)
 }
-
 
