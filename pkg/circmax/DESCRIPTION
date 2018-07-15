@@ -1,8 +1,8 @@
 Package: circmax
-Title: Maximum Likelihood Estimation for a Circular Response
+Title: Circular Regression with Maximum Likelihood Estimation and Regression Trees
 Version: 0.1
 Authors@R: person(given = "Moritz N.", family = "Lang", role = c("aut", "cre"), email = "moritz.n.lang@gmail.com")
-Description: Maximum likelihood estimation for a circular response.
+Description: Circular regression with maximum likelihood estimation and regression trees for a circular response.
 Depends: R (>= 3.4.0)
 License: GPL-2 | GPL-3
 Imports: stats, circular, Formula, partykit, movMF, colorspace, shiny, gridGraphics, grDevices, sandwich
