@@ -13,7 +13,7 @@ circfit_control(solve_kappa = solve_kappa_Newton_Fourier, ...)
 \arguments{
   \item{solve_kappa}{Which kappa solver should be used for the starting values for kappa.
     By default a Newton Fourier is used (\code{solve_kappa_Newton_Fourier}). Alternatively,
-    a uniroot provides a safe option (\code{solve_kappa_uniroot}) or code{solve_kappa_Banerjee_et_al_2005}
+    a uniroot provides a safe option (\code{solve_kappa_uniroot}) or \code{solve_kappa_Banerjee_et_al_2005}
     provides a quick approximation.}
   \item{\dots}{additional parameters passed to \code{\link{optim}}. }
 }

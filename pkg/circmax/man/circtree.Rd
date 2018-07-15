@@ -35,7 +35,7 @@ circtree(formula, data, start, subset, na.action, weights, offset,
   \item{weights}{Optional numeric vector of case weights.}
   \item{offset}{Optional numeric vector with \emph{a priori} known component to
     be included in the linear predictor for the location. \strong{Currently, not supported.}}
-  \item{control}{Control arguments passed to \code{\link[partykit]{mob}} or \code{\link[partykit]{ctree}}.}
+  \item{control}{Control arguments passed to \code{\link[partykit]{mob}}.}
   \item{fit_control}{A list of control parameters passed to
     \code{\link[stats]{optim}} in \code{\link{circfit}}. Default is \code{\link{circfit_control}()}}
   \item{\dots}{Arguments to be used to form the default \code{control} argument

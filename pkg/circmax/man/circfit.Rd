@@ -13,11 +13,7 @@
 
 \description{
   The function \code{circfit} carries out maximum-likelihood
-  estimation of parameters for distributions from the GAMLSS
-  family (for generalized additive models for location, scale,
-  and shape). The parameters can be transformed through
-  link functions but do not depend on further covariates
-  (i.e., are constant across observations).
+  estimation of parameters for the von Mises distribution.
 }
 
 \usage{
