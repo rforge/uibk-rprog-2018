@@ -1,7 +1,15 @@
-## TO-DO List (2018-07-07)
+## TO-DO List (2018-07-16)
 
-* Check estfun() and vcov()
-* Include shiny app (simulation)
-* Factors outside
-* Penalty on the regression coefficients
-* Improve plotting function
+## circmax
+* Check estfun() 
+* Check vcov() and include analytic hessian
+* Put each factor outside in single inverse-link function
+* Penalty on the regression coefficients for linear predictors
+* Include offset and weights
+
+## tree
+* Check estfun(), vcov() and bread()
+* Which model should I return in circfit
+* Predict: Implement response
+* Improve tree plotting function
+* Extend dgp()

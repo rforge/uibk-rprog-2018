@@ -1,21 +1,22 @@
 \name{dvonmises}
 \alias{dvonmises}
-\title{Calculated the VonMises Density.}
+\title{Von Mises Density}
 \usage{
 dvonmises(y, mu, kappa, log = FALSE)
 }
 \arguments{
-\item{y}{Observations}
+\item{y}{vector of observations.}
 
-\item{mu}{Parameter mu}
+\item{mu}{vector of location parameters.}
 
-\item{kappa}{Parameter kappa}
+\item{kappa}{vector of concentration parameters.}
 
-\item{log}{Logical; if TRUE, probabilities p are given as log(p)}
+\item{log}{logical; if TRUE, probabilities p are given as log(p)}
 }
 \value{
-VonMises Density
+Von Mises Density
 }
 \description{
-Calculated the VonMises Density.
+Density function for the von Mises distribution with location parameter mu 
+and concentration parameter kappa.
 }

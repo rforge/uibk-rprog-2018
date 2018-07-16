@@ -15,7 +15,7 @@ Obtains various types of predictions for \code{circmax} models.
 
 \arguments{
   \item{object}{an object of class \code{"circmax"}.}
-  \item{newdata}{an optional data frame in which to look for variables with
+  \item{newdata}{an optional data frame in which to look for variables
   which to predict.}
   \item{type}{type of prediction: \code{"location"} returns the location of 
   the predicted distribution.

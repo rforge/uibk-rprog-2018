@@ -9,7 +9,7 @@
 \alias{predict.circfit}
 \alias{print.circfit}
 
-\title{Maximum-Likelihood Fitting of Parametric Distributions}
+\title{Maximum-Likelihood Fitting of the von Mises Distribution.}
 
 \description{
   The function \code{circfit} carries out maximum-likelihood
@@ -43,7 +43,7 @@
 }
 
 \details{
-  The function \code{circfit} fits a Von Mises distribution to the data.
+  The function \code{circfit} fits a von Mises distribution to the data.
   The resulting object of class \code{circfit} comes with a set of 
   standard methods to generic functions including \code{coef}, \code{estfun}, \code{vcov}, \code{predict} and \code{logLik}.
 }

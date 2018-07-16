@@ -6,7 +6,8 @@
 \title{Circular Regression with Maximum Likelihood Estimation}
 
 \description{
-  Fitting a regression models for a circular response by maximum likelihood estimation.
+  Fit a regression model for a circular response
+    by maximum likelihood estimation employing the von Mises distribution.
 }
 \usage{
 circmax(formula, data, subset, na.action,
@@ -22,7 +23,7 @@ circmax_control(maxit = 5000, start = NULL, method = "Nelder-Mead",
 \arguments{
   \item{formula}{a formula expression of the form \code{y ~ x | z} where
     \code{y} is the response and \code{x} and \code{z} are regressor variables
-    for the location and the scale (density) of the von Mises distribution.}
+    for the location and the concentration of the von Mises distribution.}
   \item{data}{an optional data frame containing the variables occurring in the
     formulas; y has to be given in radians.}
   \item{subset}{an optional vector specifying a subset of observations to be
@@ -35,7 +36,7 @@ circmax_control(maxit = 5000, start = NULL, method = "Nelder-Mead",
     response vector used for fitting are returned as components of the returned value.
     For \code{circmax_fit}: \code{x} is a design matrix with regressors for the
     location and \code{y} is a vector of observations given in radians.}
-  \item{z}{a design matrix with regressors for the scale.}
+  \item{z}{a design matrix with regressors for the concentration.}
   \item{\dots}{arguments to be used to form the default \code{control} argument
     if it is not supplied directly.}
   \item{control, maxit, start}{a list of control parameters passed to \code{\link[stats]{optim}}.}
@@ -55,7 +56,7 @@ circmax_control(maxit = 5000, start = NULL, method = "Nelder-Mead",
 \code{circmax} fits a regression model for a circular response assuming a von Mises distribution.
 
 
-\code{circmax_fit} is the lower level function where the parameters of the the von Mises distribution 
+\code{circmax_fit} is the lower level function where the parameters of the von Mises distribution 
   are fitted by maximum likelihood estimation.
 }
 
@@ -66,10 +67,9 @@ circmax_control(maxit = 5000, start = NULL, method = "Nelder-Mead",
 \examples{
 ## Example 1: Simulated Data:
 
-sdat <- circmax_simulate()
+sdat <- circmax_simulate(n = 1000, beta = c(3, 5, 2), gamma = c(3, 3))
 
-m1.circmax <- circmax(y ~ x1 + x2 | x3, data = sdat)
-predict(m1.circmax)
+(m1.circmax <- circmax(y ~ x1 + x2 | x3, data = sdat))
 
 ## Example 2: Periwinkle Dataset of Fisher and Lee, 1992:
 require("circular")
@@ -81,7 +81,7 @@ cdirect <- circular(directdeg * 2 * pi/360)
 plot(as.numeric(cdirect) ~ distance, ylim = c(0, 4*pi), pch = 20)
 points(as.numeric(cdirect) + 2*pi ~ distance, pch = 20)
 
-m2.circ <- lm.circular(type = "c-l", y = cdirect, x = distance, init = 0.0)
-m2.circmax <- circmax(cdirect ~ distance, data = data.frame(cbind(distance, cdirect)))
+(m2.circ <- lm.circular(type = "c-l", y = cdirect, x = distance, init = 0.0))
+(m2.circmax <- circmax(cdirect ~ distance, data = data.frame(cbind(distance, cdirect))))
 }
-\keyword{circular, regression, Von Mises}
+\keyword{circular, regression, von Mises}

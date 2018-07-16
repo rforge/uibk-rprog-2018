@@ -9,11 +9,11 @@
 \alias{bread.circtree}
 \alias{nobs.circtree}
 
-\title{Regression Tree with a Von Mises Distribution}
+\title{Regression Tree for a Circular Response}
 
 \description{
-  Trees based on maximum-likelihood estimation of parameters for
-  a circular response employing a Von Mises distribution.
+  Trees based maximum-likelihood estimation of parameters for
+  a circular response employing a von Mises distribution.
 }
 
 \usage{
@@ -43,7 +43,7 @@ circtree(formula, data, start, subset, na.action, weights, offset,
 }
 
 \details{
-  Regression trees employing a Von Mises distribution is an application of model-based recursive partitioning 
+  Regression trees employing a von Mises distribution is an application of model-based recursive partitioning 
     and unbiased recursive partitioning based on the implementation in \code{\link[partykit]{mob}}.
 }
 

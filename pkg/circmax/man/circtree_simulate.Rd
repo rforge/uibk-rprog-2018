@@ -18,5 +18,5 @@
 }
 \description{
   This function creates artifical data set for testing the regression trees employing a 
-    Von Mises distribution.
+    von Mises distribution.
 }
