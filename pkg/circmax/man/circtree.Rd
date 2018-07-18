@@ -55,7 +55,7 @@ circtree(formula, data, start, subset, na.action, weights, offset,
 sdat <- circtree_simulate()
 
 m1.circtree <- circtree(y ~ x1 + x2, data = sdat)
-plot(m1.circtree)
+plot(m1.circtree, tp_args = list(stack = 5, fit_dens = TRUE)) 
 }
 
 
