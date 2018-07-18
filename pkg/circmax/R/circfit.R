@@ -24,10 +24,12 @@ circfit <- function(y, x = NULL, start = NULL, subset = NULL, na.action = NULL,
 
   ## Control parameters
   solve_kappa <- fit_control$solve_kappa
-  fit_control$solve_kappa <- NULL
+  useC <- fit_control$useC
+  ncores <- fit_control$ncores
+  fit_control$solve_kappa <- fit_control$useC <- fit_control$ncores <- NULL
 
   ## Get Von Mises family functions (for interchangeability the same distlist is used)
-  circfam <- dist_vonmises() 
+  circfam <- dist_vonmises(useC = useC, ncores = ncores) 
 
   ## MLE according to Bettina Gruen
   eta <- circfam$startfun(y, weights = weights, solve_kappa = solve_kappa)

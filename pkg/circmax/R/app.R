@@ -6,7 +6,7 @@ plot_circ <- function(x, plt_rose, ...){
   suppressWarnings(x <- circular::as.circular(x))
   plot(x, cex = 1., bin = 720, stack = TRUE, sep = 0.035, shrink = 1.3, ...)
   if(plt_rose){
-    rose.diag(x, bins = 16, col = "darkgrey", cex = 1., prop = 1.3, add = TRUE)
+    circular::rose.diag(x, bins = 16, col = "darkgrey", cex = 1., prop = 1.3, add = TRUE)
   }
   lines(circular::density.circular(x, bw = 1), lty = 2)
 }

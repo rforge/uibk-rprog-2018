@@ -11,5 +11,5 @@
 * Check estfun(), vcov() and bread()
 * Which model should I return in circfit
 * Predict: Implement response
-* Improve tree plotting function
+* Improve tree plotting function (partly done)
 * Extend dgp()

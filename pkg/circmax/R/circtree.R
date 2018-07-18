@@ -40,9 +40,9 @@ circtree <- function(formula, data, start, subset, na.action, weights, offset,
 
 
 ## Control function for circfit
-circfit_control <- function(solve_kappa = solve_kappa_Newton_Fourier, ...) {
+circfit_control <- function(solve_kappa = solve_kappa_Newton_Fourier, useC = FALSE, ncores = 1,...) {
   ctrl <- c(
-    list(solve_kappa = solve_kappa), 
+    list(solve_kappa = solve_kappa, useC = useC, ncores = ncores), 
     list(...)
   )
   ctrl
