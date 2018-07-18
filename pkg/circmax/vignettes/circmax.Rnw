@@ -177,7 +177,7 @@ function, including options for pruning.
 <<fig=TRUE, echo=FALSE>>=
 sdat <- circtree_simulate(n = 1000, mu = c(0, 2, 1), kappa = c(3, 3, 1))
 m.circtree <- circtree(y ~ x1 + x2, data = sdat)
-plot(m.circtree, tp_args = list(stack = 5, fit_dens = TRUE))
+plot(m.circtree)
 @
 \caption{Fitted distribution tree for a circular response employing the von Mises distribution.}
 \label{fig:tree}
