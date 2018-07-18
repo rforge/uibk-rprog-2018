@@ -1,6 +1,6 @@
 ## Run Von Mises App
 vonmises_shinyapp <- function(...){
-shiny::runApp(system.file("R", "app.R", package = "circmax"), ...)
+shiny::runApp(system.file("inst", "shinyapp", package = "circmax"), ...)
 }
 
 ## Density Von Mises 
