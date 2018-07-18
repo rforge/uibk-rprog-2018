@@ -103,9 +103,9 @@ t_C2 <- system.time(dC2$ddist(y, eta))
 t_C5 <- system.time(dC5$ddist(y, eta))
 
 test_that("time for c-routines are faster", {
-  expect_true(compare_times(t_R, t_C, output = "numeric") > -10)
-  expect_true(compare_times(t_R, t_C2, output = "numeric") > -10)
-  expect_true(compare_times(t_R, t_C5, output = "numeric") > -10)
+  expect_true(compare_times(t_R, t_C, output = "numeric") > -20)
+  expect_true(compare_times(t_R, t_C2, output = "numeric") > -20)
+  expect_true(compare_times(t_R, t_C5, output = "numeric") > -20)
 })
 
 #compare_times(t_R, t_C, "ddist one core")
