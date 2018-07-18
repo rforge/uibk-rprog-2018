@@ -3,7 +3,7 @@
 ## circmax
 * Check estfun() 
 * Check vcov() and include analytic hessian
-* Put each factor outside in single inverse-link function
+* Put each factor outside in single inverse-link function (single linkfunction or for each a linkfunction)
 * Penalty on the regression coefficients for linear predictors
 * Include offset and weights
 

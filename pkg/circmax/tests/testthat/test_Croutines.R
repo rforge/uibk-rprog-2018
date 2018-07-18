@@ -69,7 +69,7 @@ test_that("time for c-routines are faster", {
 
 })
 
-compare_times(t_R, t_C, "solve kappa")
+#compare_times(t_R, t_C, "solve kappa")
 
 
 

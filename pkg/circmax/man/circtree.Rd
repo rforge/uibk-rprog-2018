@@ -55,7 +55,8 @@ circtree(formula, data, start, subset, na.action, weights, offset,
 sdat <- circtree_simulate()
 
 m1.circtree <- circtree(y ~ x1 + x2, data = sdat)
-plot(m1.circtree, tp_args = list(kernel_density = TRUE)) 
+#plot(m1.circtree, tp_args = list(kernel_density = TRUE)) 
+plot(m1.circtree) 
 }
 
 

@@ -80,7 +80,7 @@ test_that("time for c-routines are faster", {
   expect_true(compare_times(t_R, t_C5, output = "numeric") > -10)
 })
 
-compare_times(t_R, t_C, "sdist one core")
-compare_times(t_R, t_C2, "sdist 2 cores")
-compare_times(t_R, t_C5, "sdist 5 cores")
+#compare_times(t_R, t_C, "sdist one core")
+#compare_times(t_R, t_C2, "sdist 2 cores")
+#compare_times(t_R, t_C5, "sdist 5 cores")
 
