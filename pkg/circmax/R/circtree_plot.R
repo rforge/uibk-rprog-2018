@@ -109,7 +109,7 @@ node_circular <- function(obj, which = NULL, id = TRUE, pop = TRUE,
     }
     grid::grid.text(mainlab, y = grid::unit(0.9, "npc"))
 
-    ## plot rectangle and actual graphic 
+    ## plot rectangle and actual graphic, optional x and ylab 
     grid::seekViewport("plot")
 
     grid::grid.rect(gp = grid::gpar(fill = "transparent", col = 1), width = grid::unit(0.9, "npc"))
