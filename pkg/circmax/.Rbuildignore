@@ -1,3 +1,4 @@
-analysis/*
-vignettes/Make
+vignettes/Makefile
+vignettes/circmax.pdf
+vignettes/circmax.tex
 TODO

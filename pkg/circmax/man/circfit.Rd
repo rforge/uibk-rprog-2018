@@ -19,7 +19,7 @@
 \usage{
   circfit(y, x = NULL, start = NULL, subset = NULL, na.action = NULL,
     weights = NULL, offset = NULL, ...,
-    vcov = FALSE, estfun = TRUE, object = FALSE, fit_control = circfit_control())
+    vcov = TRUE, estfun = TRUE, object = FALSE, fit_control = circfit_control())
 }
 
 \arguments{

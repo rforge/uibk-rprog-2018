@@ -22,7 +22,7 @@ circtree <- function(formula, data, start, subset, na.action, weights, offset,
   m <- m[c(1L, morder)]
   m$fit <- circfit
   # FIXME: circfit is called with all default values. How can I change estfun and object as user 
-    # (tried control arguments but then two parameters were in the function call) ?!
+    # (tried control arguments but then two parameters were in the function call, as circfit is called with all defaults) ?!
   m$formula <- formula
   m$control <- control
   m$fit_control <- fit_control

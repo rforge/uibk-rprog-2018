@@ -1,6 +1,6 @@
 circfit <- function(y, x = NULL, start = NULL, subset = NULL, na.action = NULL, 
                     weights = NULL, offset = NULL, ...,
-                    vcov = FALSE, estfun = TRUE, object = FALSE, fit_control = circfit_control()) {
+                    vcov = TRUE, estfun = TRUE, object = FALSE, fit_control = circfit_control()) {
 
   # TODO: Why is circfit quite often called with object TRUE and what are the start values used for?!
     # if(object) cat("now object = TRUE\n")
@@ -38,7 +38,7 @@ circfit <- function(y, x = NULL, start = NULL, subset = NULL, na.action = NULL,
   ## Compute negative loglik
   nll <- -circfam$ddist(y, eta, log = TRUE, weights = weights, sum = TRUE)
 
-  # FIXME: Check if estfun and vcov are correct.
+  # FIXME: Check if estfun and vcov are correct (at least they are identical to Lisa's).
   if(estfun) {
     if(allequy) {
       ef <- matrix(0, ncol = length(eta), nrow = n)
@@ -103,6 +103,7 @@ circfit <- function(y, x = NULL, start = NULL, subset = NULL, na.action = NULL,
 
 
 ## Different methods for circfit
+# FIXME: All models go for the fit$object: good, bad?!
 
 nobs.circfit <- function(object, ...) {
   return(object$ny)
