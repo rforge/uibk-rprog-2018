@@ -66,7 +66,7 @@ To represent different circular responses the von Mises distribution is employed
 normal distribution, and is a special case of the von Mises-Fisher distribution on the N-dimensional sphere:
 %%
 \begin{equation}
-  f(x \mid \mu, \kappa) = \frac{1}{2 \pi I_0(\kappa)}~e^{ \kappa \cos(x - \mu)},
+  f(x \mid \mu, \kappa) = \frac{1}{2 \pi I_0(\kappa)}~e^{ \kappa \cos(x - \mu)}\label{equ:vm},
 \end{equation}
 %%
 where $I_0(\kappa)$ is the modified Bessel function of the first kind and order $0$.
@@ -85,7 +85,39 @@ methods for distribution trees for a circular response. For both methods differe
 \proglang{R} implementations are illustrated by using artificial data. In the end of the paper,
 Section~\ref{sec:summary} provides a very brief summary of the two approaches.
 
-\section{Circular regression methods}\label{sec:circmax}
+\section{Circular regression models}\label{sec:circmax}
+For circular regression models the response is assumed to follow a von Mises distribution~$VM$ as defined
+in Equation~\ref{equ:vm}:
+%%
+\begin{equation}
+  y \sim VM
+\end{equation}
+%%
+The location parameter $\mu$ and the concentration parameter $\kappa$ are                          
+assumed to be linked to the covariates $\mathbf{x} = (x_1, x_2, \ldots)^\top$ and  
+$\mathbf{z} = (z_1, z_2, \ldots)^\top$:
+%%
+\begin{align}
+  \mu &= \alpha_0 + g^{-1}(\mathbf{x}^{\top}\beta)\label{eq_mu}\\ 
+  \kappa & = h^{-1}(\gamma_0 + \mathbf{z}^{\top}\gamma),\label{eq_sigma}
+\end{align}
+%%
+where $\beta=(\beta_1, \beta_2, \ldots)^\top$ and $\gamma=(\gamma_1, \gamma_2, \ldots)^\top$ 
+are the slope coefficients and $\alpha_0$ and $\gamma_0$ the intercepts, respectively \citep{fisher:1992}.
+The link functions $g(\cdot) : \mathbb{R} \mapsto (-\pi, \pi)$ and $h(\cdot) : \mathbb{R}^+ \mapsto \mathbb{R}$
+are monotonic and twice differentiable functions. For the concentration parameter $\kappa$ the 
+logarithm function is typically employed (i.e., $h^{\top}(\cdot) = \exp(\cdot)$). 
+For the location parameter $\mu$ the `tan-half' link is a well suited function restricting the values to $(-\pi, \pi)$:
+%%
+\begin{equation}
+g^{\top}(\cdot) = 2\,\arctan(\cdot).
+\end{equation}
+%%
+The offset parameter $\alpha_0$ outside of the inverse link function of the predictors performs   
+a simple rotation of the response. To restrict the parameter $\alpha_0$ to $(-\pi, \pi)$
+we also apply the inverse link function $g^{\top}(\cdot)$ to it. Therefore, $\mu$ can theoretically take
+values between $-2\pi$ and $+2\pi$, but has still a restricted range of $2\pi$.
+
 A circular regression model by maximum likelihood estimation can be fitted
 with the \code{circmax()} function provided by the \pkg{circmax} package.
 This function provides a standard formula interface with arguments like formula,
@@ -227,6 +259,8 @@ are not shown in this short summary paper and are ready for testing.
 Additionally, a shiny app is implemented for illustrating the von Mises distribution
 and exported families for \CRANpkg{bamlss}
 and \pkg{disttree} are provided for comparison.
+
+\newpage
 
 \bibliography{circmax}
 
