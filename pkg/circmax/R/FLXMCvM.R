@@ -2,7 +2,7 @@
 #
 # Der flexmix Driver nimmt an, dass die Daten als Winkel auf [0, 2pi] kommen und 
 # wandelt diese dann um auf (x, y) Koordinaten am Einheitskreis. Es wird dann der 
-# Parameter theta zurückgegeben, der erwarteter Richtung mal kappa entspricht.
+# Parameter theta zurueckgegeben, der erwarteter Richtung mal kappa entspricht.
 FLXMCvM <- function(formula = .~., solve_kappa = movMF:::solve_kappa_Newton_Fourier) {
     z <- methods::new("FLXMC", weighted = TRUE, formula = formula,
              dist = "vM", name = "model-based von Mises clustering")

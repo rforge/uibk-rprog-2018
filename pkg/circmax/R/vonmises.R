@@ -1,6 +1,6 @@
 ## Run Von Mises App
 vonmises_shinyapp <- function(...){
-shiny::runApp(system.file("inst", "shinyapp", package = "circmax"), ...)
+shiny::runApp(system.file("shinyapp", package = "circmax"), ...)
 }
 
 ## Density Von Mises 
@@ -19,6 +19,7 @@ dvonmises <- function(y, mu, kappa, log = FALSE) {
 
 
 ## Family for bamlss
+# scaled besselI ( times exp(-kappa) in density, not in score)  and with hessian
 vonmises_bamlss <- function(...) {
    f <- list(
          "family" = "vonmises",
@@ -39,11 +40,17 @@ vonmises_bamlss <- function(...) {
             "mu" = function(y, par, ...) {
                drop(2 * par$kappa * sin(y - par$mu) / ((tan(par$mu/2))^2 + 1) )
             },
-            "kappa" = function(y, par, ...)  {
+            "kappa" = function(y, par, ...) {
+               drop(par$kappa * (cos(y - par$mu)  
+                    - besselI(par$kappa, nu = 1, expon.scaled = TRUE) / besselI(par$kappa, nu = 0, expon.scaled = TRUE)))
+            }
+         ),
+         "hess" = list(
+            "mu" = function(y, par, ...) {
                ta <- tan(par$mu/2)
                drop(4 * par$kappa / (ta^2 + 1)^2 * (sin(y - par$mu) * ta + cos(y - par$mu)))
             },
-            "sigma" = function(y, par, ...) {
+            "kappa" = function(y, par, ...) { 
                be0 <- besselI(par$kappa, nu = 0, expon.scaled = TRUE)
                be1 <- besselI(par$kappa, nu = 1, expon.scaled = TRUE)
                be2 <- besselI(par$kappa, nu = 2, expon.scaled = TRUE)
@@ -54,6 +61,7 @@ vonmises_bamlss <- function(...) {
    class(f) <- "family.bamlss"
    return(f)
 }
+
 
 ## Distlist Von Mises Distribution
 
