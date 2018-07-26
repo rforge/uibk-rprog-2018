@@ -1,0 +1,98 @@
+---
+title: "Logit Regression Model"
+author: "[Benjamin Mayr](ben.mayr@gmail.com)"
+date: 2018-07-21
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Logit Regression Model}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteDepends{stats, numDeriv}
+  %\VignetteKeywords{logit, regression, R}
+  %\VignettePackage{logitr}
+---
+
+```{r preliminaries, echo = FALSE, message = FALSE, results = "hide"}
+library("logitr")
+library("numDeriv")
+```
+
+# Introduction
+
+The [`logitr`] package fits logit regression models using maximum
+likelihood estimation. The model assumes an underlying latent Binomial variable.
+
+For a more detailed and complete model with more available and extractable information use
+stats:::glm. This package was made for learning purposes only and using the standard glm functions
+instead of this is recommended.
+
+------
+
+# Implementation
+
+As usual in many other regression packages for R [@R], the main model fitting function `logitr()`
+uses a formula-based interface and returns an (S3) object of class `logitr`:
+
+```
+logitr(formula, data, subset, na.action,
+  model = TRUE, x = FALSE, y = TRUE,
+  control = logitr_control(...), ...)
+```
+
+The underlying workhorse function is `logitr_fit()` which has a matrix interface and returns an unclassed list.
+
+A number of standard S3 methods are provided:
+
+| Method          | Description                                                                          |
+|:----------------|:-------------------------------------------------------------------------------------|
+| `print()`       | Simple printed display with coefficients                                             |
+| `summary()`     | Standard regression summary; returns `summary.logitr` object (with `print()` method) |
+| `coef()`        | Extract coefficients                                                                 |
+| `vcov()`        | Associated covariance matrix                                                         |
+| `predict()`     | Predictions for new data                                                             |
+| `fitted()`      | Fitted values for observed data                                                      |
+| `residuals()`   | Extract the Pearson Residuals                                                        |
+| `terms()`       | Extract terms                                                                        |
+| `model.matrix()`| Extract model matrix (or matrices)                                                   |
+| `nobs()`        | Extract number of observations                                                       |
+| `logLik()`      | Extract fitted log-likelihood                                                        |
+
+Due to these methods some standard utilities also work automatically, e.g., `AIC()` and `BIC()`
+
+------
+
+# Illustration
+
+As this package was created for learning purposes only and merely replicates an already existing
+function in R the goal was to also get results that match those output by stats:::glm as closely
+as possible.
+Because I am not working with any specific data sets I created a dataset arbitrarily using some
+of the randomization available in R.
+  
+```{r logitr vs glm}
+## generating data
+set.seed(123)
+x1 <- rnorm(30,3,2) + 0.1 * c(1:30)
+x2 <- rbinom(30,1,0.3)
+x3 <- rpois(n=30,lambda = 4)
+x3[16:30] <- x3[16:30] - rpois(n=15, lambda = 2)
+xdat <- cbind(x1,x2,x3)
+ydat <- c(rbinom(5,1,0.1), rbinom(10,1,0.25), rbinom(10,1,0.75), rbinom(5,1,0.9))
+## comparison of model outputs
+(m0 <- logitr(ydat~xdat))
+(m1 <- glm(ydat~xdat, family = "binomial"))
+## comparing AIC and BIC
+AIC(m0)
+AIC(m1)
+BIC(m0)
+BIC(m1)
+  
+```
+
+While there are slight deviations on the last digit of the coefficients, the
+results are otherwise mostly identical with both the AIC and BIC also being
+a perfect match.
+With this I am fairly satisfied with the result of this project and although
+I won't be publishing this I learned an incredible ammount of new things.
+
+------
+
