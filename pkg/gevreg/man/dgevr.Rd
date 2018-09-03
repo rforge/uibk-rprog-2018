@@ -23,14 +23,14 @@ qgevr(p, loc = 0, scale = 1, shape = 0, lower.tail = TRUE)
 }
 
 \details{
-\code{dgevr,pgevr,qgevr}{ GEV density, distribution and quantile function which can take location, scale and shape parameters as vector. Simply modifed versions of \code{\link[SpatialExtremes]{dgev}}, \code{\link[SpatialExtremes]{pgev}} and \code{\link[SpatialExtremes]{qgev}}.}} 
+\code{dgevr,pgevr,qgevr}{ GEV density, distribution and quantile function which can take location, scale and shape parameters as vector. Simply modifed versions of \code{dgev}, \code{pgev} and \code{qgev} of package \code{\link{SpatialExtremes}}.}} 
 
 \value{
 If not specified, "loc", "scale" and "shape" assume the default values of "0", "1", and "0", respectively.
 }
 
 \seealso{
-\link[SpatialExtremes]{dgev}
+\link{SpatialExtremes}
 }
 
 \examples{

@@ -35,7 +35,7 @@ gevreg_control(maxit = 5000, start = NULL, grad = TRUE, ...)
   \item{x, y, z, v}{for \code{gevreg}: logical. If \code{TRUE} the model matrix and
     response matrix used for fitting are returned as part of the returned gevreg object. For \code{gevreg.fit}: \code{x, z, v} are design matrices with regressors for the
     location, scale and shape parameters of the GEV and \code{y} is a vector of observed parameters. }
-    \item{gev_params, gevp}{ GEV parameters at the stations. A data frame with three columns named \emph{loc}, \emph{scale} and \emph{shape}. Each row corresponds to one onservation site. If not provided, gev_params is created from the data with the function \code{\link{gevmle}} from package \code{\link[SpatialExtremes]{SpatialExtremes}}.}
+    \item{gev_params, gevp}{ GEV parameters at the stations. A data frame with three columns named \emph{loc}, \emph{scale} and \emph{shape}. Each row corresponds to one onservation site. If not provided, gev_params is created from the data with the function \code{\link{gevmle}} from package \code{\link{SpatialExtremes}}.}
     
   \item{\dots}{arguments to be used to form the default \code{control} argument
     if it is not supplied directly.}
