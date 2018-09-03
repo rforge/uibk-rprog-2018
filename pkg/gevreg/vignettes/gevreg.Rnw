@@ -186,7 +186,8 @@ plot(df)
 \begin{figure}
 \centering
 <<fig = TRUE, height=4,width=4>>=
-df <- cbind(SnowAustriaGEV,data.frame(lon = unique(SnowAustria$lon), alt = unique(SnowAustria$alt)))
+df <- cbind(SnowAustriaGEV,data.frame(lon = unique(SnowAustria$lon), 
+                                      alt = unique(SnowAustria$alt)))
 plot(df)
 @
 \caption{Relations between the GEV parameters and covariables lon and alt in the dataset \code{SnowAustria}, that can be used to set up the marginal models.}
@@ -196,7 +197,9 @@ plot(df)
 From this we can set up a call to \code{gevreg()}. First, the location parameter is added as column to the data.frame SnowAustria as covariate:
 %
 <<>>=
-SnowAustria$loc <- as.numeric(rep(SnowAustriaGEV$loc,each=nrow(SnowAustria)/length(levels(SnowAustria$station))))
+SnowAustria$loc <- as.numeric(rep(SnowAustriaGEV$loc,
+                                  each=nrow(SnowAustria)/
+                                    length(levels(SnowAustria$station))))
 @
 %
 Then the function call is set up, using ``lon" and ``alt" as covariates for the location parameter, ``lat", ``alt" and the location parameter ``loc" as covariate for the scale parameter, and the longitude ``lon" as covariate for the shape parameter:
@@ -216,7 +219,7 @@ print(m0)
 The full model from above can be compared with a simpler model. Taking e.g. a constant location parameter over the whole domain of Austria:
 %
 <<>>=
-m1 <- gevreg(formula = hs ~ 1 | loc | alt, 
+m1 <- gevreg(formula = hs ~ 1 | lat + alt + loc | lon,
              data = SnowAustria, gev_params = SnowAustriaGEV, na.action = NULL)
 @
 %
@@ -229,7 +232,8 @@ cbind(AIC(m0,m1),loglik=c(logLik(m0),logLik(m1)))
 By applying the \proglang{S}3 function \code{predict} to the fitted \code{gevreg} object m0, return values on a grid can be computed. The grid has to have an extra column with the covariate ``loc". To get a map of extreme snow depths with a return peripod of 50 years on the grid provided by \code{SnowAustria}, one could use the following R-code, which results in Figure~\ref{fig:rlplot}:
 %
 <<>>=
-SnowAustriaMap$loc <- predict(m0, type = "location", newdata = SnowAustriaMap, at=1-1/50)
+SnowAustriaMap$loc <- predict(m0, type = "location", 
+                              newdata = SnowAustriaMap, at=1-1/50)
 @
 %
 Results can then be plotted with ggplot:
@@ -237,7 +241,7 @@ Results can then be plotted with ggplot:
 <<fig=FALSE>>=
 library("ggplot2")
 library("colorspace")
-values <- c(0,200,400,600,800)
+values <- c(0,150,200,300,400)
 colors <- diverge_hcl(length(values), 
                       h = c(260, 0), 
                       c = 100, 
@@ -265,7 +269,7 @@ ggplot(data.frame(SnowAustriaMap,rl.fact),aes(lon,lat,color=rl.fact,fill=rl.fact
 <<fig=TRUE,width=10,height=5,echo=FALSE>>=
 library("ggplot2")
 library("colorspace")
-values <- c(0,200,400,600,800)
+values <- c(0,150,200,300,400)
 colors <- diverge_hcl(length(values), 
                       h = c(260, 0), 
                       c = 100, 
@@ -287,7 +291,7 @@ ggplot(data.frame(SnowAustriaMap,rl.fact),aes(lon,lat,color=rl.fact,fill=rl.fact
   annotate("point",x=11.393,y=47.267,shape=4,size=5,stroke=0.3) +
   annotate("text",x=11.4,y=47.267,label="Innsbruck",size=5,hjust=-0.2)
 @
-\caption{50-year snow depth return levels computed with a smooth GEV model. A 50-year return level of up to 200~cm is modeled for the Inn valley. The high altitudes show larger extremes. }
+\caption{50-year snow depth return levels computed with a smooth GEV model. A 50-year return level of roughly 130~cm is modeled for the Inn valley. The high altitudes show larger extremes. }
 \label{fig:rlplot}
 \end{figure}
 %

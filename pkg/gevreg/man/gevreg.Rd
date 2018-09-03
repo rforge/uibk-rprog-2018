@@ -93,7 +93,8 @@ m0 <- gevreg(formula = hs ~ lon + alt | lat + alt +loc | lon,
              data = SnowAustria, gev_params = SnowAustriaGEV, na.action = NULL)
 
 ## Compare different models
-m1 <- gevreg(hs ~ 1 | loc | alt, data = SnowAustria, gev_params = SnowAustriaGEV, na.action = NULL)
+m1 <- gevreg(formula = hs ~ 1 | lat + alt + loc | lon,
+             data = SnowAustria, gev_params = SnowAustriaGEV, na.action = NULL)
 cbind(AIC(m0,m1),loglik=c(logLik(m0),logLik(m1)))
 
 ## compare observed and modeled return values for return period of 50 years
