@@ -87,7 +87,8 @@ plot(df)
 ## Fit GEV to the snow depths of all stations in the dataset
 ## by explaining the GEV parameters with smooth functions of spatial covariates 
 ## and the location parameter
-SnowAustria$loc <- as.numeric(rep(SnowAustriaGEV$loc,each=nrow(SnowAustria)/length(levels(SnowAustria$station))))
+SnowAustria$loc <- as.numeric(rep(SnowAustriaGEV$loc,
+                                  each=nrow(SnowAustria)/length(levels(SnowAustria$station))))
 m0 <- gevreg(formula = hs ~ lon + alt | lat + alt +loc | lon, 
              data = SnowAustria, gev_params = SnowAustriaGEV, na.action = NULL)
 
@@ -111,7 +112,9 @@ abline(1,1)
 
 
 ## predict GEV parameters for new location
-ungauged <- data.frame(lon=c(14.4,9.58,11.2),lat=c(44.6,44.3,41.23),alt=c(867,1600,2145),loc=c(50,60,80))
+ungauged <- data.frame(lon=c(14.4,9.58,11.2),
+                       lat=c(44.6,44.3,41.23),
+                       alt=c(867,1600,2145),loc=c(50,60,80))
 predict(m0, type = "parameter", newdata = ungauged)
 
 }
