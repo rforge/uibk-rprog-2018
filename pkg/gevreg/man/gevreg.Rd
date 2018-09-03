@@ -60,7 +60,7 @@ gevreg_control(maxit = 5000, start = NULL, grad = TRUE, ...)
   \item{gev_params}{The GEV parameters used to fit the model.}
   \item{loglik}{ The maximised log-likelihood value.}
   \item{x, y, z,v}{ If \code{TRUE} in the call the model matrix and response matrix used for fitting are returned.}
-  Refer to \code{\link{optimx}} for a list of return values inherited from there (niter,feval,geval,xtimes,convcode,... ).
+  Refer to \code{\link{optimx}} for a list of return values inherited from there (\code{niter},\code{feval},\code{geval},\code{xtimes},\code{convcode},... ).
   
   
 }
@@ -75,33 +75,32 @@ gevreg_control(maxit = 5000, start = NULL, grad = TRUE, ...)
 \examples{
 
 ## Load example data
-data("gevregdata")
-hs <- gevregdata[["hs"]]
-gev_params <- gevregdata[["gev_params"]]
+data("SnowAustria")
+data("SnowAustriaGEV")
 
 ## explore dataset
-with(hs, plot(lon,lat))
-with(hs, hist(hs))
-df <- cbind(gev_params,data.frame(lon = unique(hs$lon), alt = unique(hs$alt)))
+with(SnowAustria, plot(lon,lat))
+with(SnowAustria, hist(hs))
+df <- cbind(SnowAustriaGEV,data.frame(lon = unique(SnowAustria$lon), alt = unique(SnowAustria$alt)))
 plot(df)
 
 ## Fit GEV to the snow depths of all stations in the dataset
 ## by explaining the GEV parameters with smooth functions of spatial covariates 
 ## and the location parameter
-hs$loc <- as.numeric(rep(gev_params$loc,each=nrow(hs)/length(levels(hs$station))))
+SnowAustria$loc <- as.numeric(rep(SnowAustriaGEV$loc,each=nrow(SnowAustria)/length(levels(SnowAustria$station))))
 m0 <- gevreg(formula = hs ~ lon + alt | lat + alt +loc | lon, 
-             data = hs, gev_params = gev_params, na.action = NULL)
+             data = SnowAustria, gev_params = SnowAustriaGEV, na.action = NULL)
 
 ## Compare different models
-m1 <- gevreg(hs ~ 1 | loc | alt, data = hs, gev_params = gev_params, na.action = NULL)
+m1 <- gevreg(hs ~ 1 | loc | alt, data = SnowAustria, gev_params = SnowAustriaGEV, na.action = NULL)
 cbind(AIC(m0,m1),loglik=c(logLik(m0),logLik(m1)))
 
 ## compare observed and modeled return values for return period of 50 years
 rl.modeled <- predict(m0, type = "quantile", at = 1-1/50)
 rl.observed <- c()
 if(require("extRemes")) {
-  for (i in 1:length(levels(hs$station))){
-  d <- as.numeric(na.omit(hs$hs[which(hs$station==i)]))
+  for (i in 1:length(levels(SnowAustria$station))){
+  d <- as.numeric(na.omit(SnowAustria$hs[which(SnowAustria$station==i)]))
   fit <- fevd(d,type="GEV",method="MLE")
   rl <- return.level(fit,return.period = 50)
   rl.observed <- c(rl.observed,rl)

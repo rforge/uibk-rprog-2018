@@ -127,10 +127,10 @@ gevreg_fit <- function (x, y, z = NULL, v = NULL, n.stats, n.years, gevp, contro
     scalecoeff <- par[m + (1:p)]
     shapecoeff <- par[m + p + (1:q)]
     locs <- x %*% loccoeff
-    scales <- exp(z %*% scalecoeff)
+    scales <- abs(z %*% scalecoeff)
     shapes <- v %*% shapecoeff
     i <- which(is.na(y))
-    -sum(dgev.gevreg(na.omit(y), loc = locs[-i], scale = scales[-i], shape = shapes[-i], log = TRUE))
+    -sum(dgevr(na.omit(y), loc = locs[-i], scale = scales[-i], shape = shapes[-i], log = TRUE))
   }
   
   nll2 <- function(par) {
@@ -139,7 +139,7 @@ gevreg_fit <- function (x, y, z = NULL, v = NULL, n.stats, n.years, gevp, contro
     scalecoeff <- par[m + (1:p)]
     shapecoeff <- par[m + p + (1:q)]
     locs <- x %*% loccoeff
-    scales <- exp(z %*% scalecoeff)
+    scales <- abs(z %*% scalecoeff)
     shapes <- v %*% shapecoeff
     sum = 0
     for (k in 1:n.stats) {
@@ -179,10 +179,9 @@ gevreg_fit <- function (x, y, z = NULL, v = NULL, n.stats, n.years, gevp, contro
     start.scale <- glm.fit(z, pscale)
     start.shape <- glm.fit(v, pshape)
     #start <- c(start.loc$coefficients,log(abs(start.scale$coefficients)),start.shape$coefficients)
-    #++start <- c(start.loc$coefficients,abs(start.scale$coefficients),start.shape$coefficients)
-    #start.scale.log <- log(abs(start.scale$coefficients)) #[1]),start.scale$coefficients[2:p]
-    start.scale.log <- c(log(start.scale$coefficients[1]),abs(start.scale$coefficients[2:p]))
-    start <- c(start.loc$coefficients,start.scale.log,start.shape$coefficients)
+    start <- c(start.loc$coefficients,abs(start.scale$coefficients),start.shape$coefficients)
+    #start.scale.log <- c(log(start.scale$coefficients[1]),abs(start.scale$coefficients[2:p]))
+    #start <- c(start.loc$coefficients,start.scale.log,start.shape$coefficients)
   }
   else {
     start <- control$start
@@ -220,7 +219,7 @@ gevreg_fit <- function (x, y, z = NULL, v = NULL, n.stats, n.years, gevp, contro
                            shape = res$coefficients[m + p + (1:q)],
                            all = res$coefficients[1:(m + p + q)])
   mu <- drop(x %*% res$coefficients$location)
-  sigma <- exp(drop(z %*% res$coefficients$scale))
+  sigma <- abs(drop(z %*% res$coefficients$scale))
   xi <- drop(v %*% res$coefficients$shape)
   res$residuals <- y - mu
   res$fitted.values <- list(location = mu, scale = sigma, shape = xi)
@@ -312,7 +311,7 @@ print.gevreg <- function(x, digits = max(3, getOption("digits") - 3), ...){
 #   )
 # }
 
-dgev.gevreg <- function (x, loc = 0, scale = 1, shape = 0, log = FALSE)
+dgevr <- function (x, loc = 0, scale = 1, shape = 0, log = FALSE)
 {
   if (min(scale) <= 0)
     stop("invalid scale parameter")
@@ -331,7 +330,7 @@ dgev.gevreg <- function (x, loc = 0, scale = 1, shape = 0, log = FALSE)
   return(dns)
 }
 
-pgev.gevreg <- function (q, loc = 0, scale = 1, shape = 0, lower.tail = TRUE) 
+pgevr <- function (q, loc = 0, scale = 1, shape = 0, lower.tail = TRUE) 
 {
   if (min(scale) <= 0) 
     stop("invalid scale parameter")
@@ -347,7 +346,7 @@ pgev.gevreg <- function (q, loc = 0, scale = 1, shape = 0, lower.tail = TRUE)
   return(p)
 }
 
-qgev.gevreg <- function (p, loc = 0, scale = 1, shape = 0, lower.tail = TRUE) 
+qgevr <- function (p, loc = 0, scale = 1, shape = 0, lower.tail = TRUE) 
 {
   if (min(p, na.rm = TRUE) <= 0 || max(p, na.rm = TRUE) >= 1) 
     stop("`p' must contain probabilities in (0,1)")
@@ -364,6 +363,7 @@ qgev.gevreg <- function (p, loc = 0, scale = 1, shape = 0, lower.tail = TRUE)
   #if (shape == 0) 
   #  return(loc - scale * log(-log(p)))
   #else return(loc + scale * ((-log(p))^(-shape) - 1)/shape)
+  return(q)
 }
 
 
@@ -415,7 +415,7 @@ predict.gevreg <- function(object, newdata = NULL,
   ## predicted parameters
   if(type != "scale") location <- drop(X %*% object$coefficients$location)
   if(type != "response") {
-    scale <- exp( drop(Z %*% object$coefficients$scale) )
+    scale <- abs( drop(Z %*% object$coefficients$scale) )
     shape <- drop(V %*% object$coefficients$shape)
   }
   
@@ -438,8 +438,8 @@ predict.gevreg <- function(object, newdata = NULL,
                  "scale" = unique(scale),
                  "shape" = unique(shape),
                  "parameter" = unique(data.frame(location, scale, shape)),
-                 "probability" = deconstruct(unique(pgev.gevreg(at, loc = location, scale = scale, shape = shape)),at),
-                 "quantile" = deconstruct(unique(pmax(0, qgev.gevreg(at, loc = location, scale = scale, shape = shape))),at)
+                 "probability" = deconstruct(unique(pgevr(at, loc = location, scale = scale, shape = shape)),at),
+                 "quantile" = deconstruct(unique(pmax(0, qgevr(at, loc = location, scale = scale, shape = shape))),at)
   )
   return(rval)
 }

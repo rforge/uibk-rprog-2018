@@ -3,9 +3,9 @@ export(
   "gevreg",
   "gevreg_control",
   "gevreg_fit",
-  "dgev.gevreg",
-  "pgev.gevreg",
-  "qgev.gevreg"
+  "dgevr",
+  "pgevr",
+  "qgevr"
 )
 
 ## methods for gevreg

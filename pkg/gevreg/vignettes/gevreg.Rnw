@@ -3,7 +3,7 @@
 \documentclass[a4paper,nojss]{jss}
 \usepackage{amsmath,amssymb,amsfonts,thumbpdf}
 
-\newcommand{\CRANpkg}[1]{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}%
+%\newcommand{\CRANpkg}[1]{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}%
 \newcommand{\samp}[1]{`\code{#1}'}%
 \DefineVerbatimEnvironment{example}{Verbatim}{}
 \setkeys{Gin}{width=\textwidth}
@@ -40,11 +40,12 @@
 <<preliminaries, echo=FALSE, results=hide>>=
 options(width = 70, prompt = "R> ", continue = "+  ")
 library("gevreg")
+library("ggplot2")
 @
 
 
 \begin{document}
-\SweaveOpts{concordance=TRUE}
+\SweaveOpts{concordance = TRUE}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % introduction
@@ -55,9 +56,9 @@ A spatial representation of meteorological extremes such as snow depth is of cru
 
 A more or less simple interpolation of GEV parameters to space has some disadvantages, as e.g.~\cite{BlanchetLehning2010} showed for extreme snow depths in Switzerland. As an improvement they suggested a direct estimation of a spatially smooth generalized extreme value (GEV) distribution, called \emph{smooth spatial modeling}. With smooth modeling the GEV parameters are modeled as smooth functions of spatial covariates. Spatially varying marginal distributions are achieved by maximizing the sum of the log-likelihood function over all stations. Compared to several interpolation methods, smooth modeling for swiss snow depth led to more accurate marginal distributions, especially in data sparse regions. The key feature of smooth modeling, permitting to approximate the likelihood as a sum of GEV likelihoods at the stations, is the simplifying assumption that annual snow depth maxima are approximately independent in space and time. Nevertheless, smooth modeling does not provide any spatial dependence of extremes. 
 
-As a way to account for spatial dependence of extremes, \emph{max-stable processes} as an extension of multivariate extreme value theory to infinite dimensions can be used~\citep{Haan1984}. With max-stable processes, the margins and their spatial dependency can be modeled simultaneously but independently. The \CRANpkg{SpatialExtremes} package provides functions for statistical modelling of spatial extremes using max-stable processes, copula or Bayesian hierarchical models. In addition, the \CRANpkg{hkevp} package provides several procedures around the HKEVP model of \cite{Reich2012} and the Latent Variable Model of \cite{DavisonRibatetPadoan2012}. However, no package for easy use of the smooth modeling approach exists. 
+As a way to account for spatial dependence of extremes, \emph{max-stable processes} as an extension of multivariate extreme value theory to infinite dimensions can be used~\citep{Haan1984}. With max-stable processes, the margins and their spatial dependency can be modeled simultaneously but independently. The \pkg{SpatialExtremes}~\citep{SpatialExtremes} package provides functions for statistical modelling of spatial extremes using max-stable processes, copula or Bayesian hierarchical models. In addition, the \pkg{hkevp}~\citep{hkevp} package provides several procedures around the HKEVP model of \cite{Reich2012} and the Latent Variable Model of \cite{DavisonRibatetPadoan2012}. However, no package for easy use of the smooth modeling approach exists. 
 
-Therefore, the \pkg{gevreg} package provides a function to fit a smooth spatial regression model to observation. It has a convenient interface to estimate the model with maximum likelihood and provides several methods for analysis and prediction. 
+Therefore, the \pkg{gevreg} package provides a function to fit a smooth spatial regression model to observations. It has a convenient interface to estimate the model with maximum likelihood and provides several methods for analysis and prediction. 
 The outline of the paper is as follows. Section 2 describes the idea of smooth spatial (extreme value) modeling, and Section 3 presents its R implementation. Section 4 illustrates the package
 functions with Austrian snow depth data and finally Section 5 summarizes the paper.
 
@@ -99,14 +100,14 @@ gevreg <- function (formula, data, subset, na.action,
                     ...)
 \end{verbatim}
 %
-The \code{formula} is actually of class \CRANpkg{Formula} \citep{zeileis2010} and can have three parts separated by \samp{|}, specifying potentially different sets of regressors $x_i$, $z_i$ and $v_i$ for the location, scale and shape submodels, respectively. 
-This function \code{gevreg()} takes this formula and fits the given (linear) submodels to the \code{gev_params} by using the \proglang{R} function \code{optimx()} to maximise the likelihood. The GEV parameters \code{gev_params} to which the submodels are fitted, can either be supplied externally, in which case, they must be an \proglang{R} \code{data.frame} with columns "loc", "scale", and "shape" and one row per observation. If no \code{gev_params} are supplied, they will be computed internally from the \code{data} using the function \code{gevmle} from the package \CRANpkg{SpatialExtremes}. In any case, they are returned with the fitted object. 
+The \code{formula} is actually of class \pkg{Formula}~\citep{zeileis2010} and can have three parts separated by \samp{|}, specifying potentially different sets of regressors $x_i$, $z_i$ and $v_i$ for the location, scale and shape submodels, respectively. 
+This function \code{gevreg()} takes this formula and fits the given (linear) submodels to the \code{gev_params} by using the \proglang{R} function \code{optimx()} to maximise the likelihood. The GEV parameters \code{gev_params} to which the submodels are fitted, can either be supplied externally, in which case, they must be an \proglang{R} \code{data.frame} with columns ``loc", ``scale", and ``shape" and one row per observation. If no \code{gev_params} are supplied, they will be computed internally from the \code{data} using the function \code{gevmle} from the package \pkg{SpatialExtremes}. In any case, they are returned with the fitted object. 
 
-The maximum likelihood estimation is performed with \code{optimx()} using control options specified in \code{gevreg_control()}. By default optimization is carried out with method "nlminb". If option \code{grad = FALSE}, "Nelder-Mead" is used instead. If no starting values are supplied with \code{start}, the coefficients from \code{glm()} are used as starting values for the location and shape parameter. For the scale parameter model a log-link function is applied to the offset of the coefficients of the \code{glm()} output. The absolute value is taken for the rest of the coefficients.
+The maximum likelihood estimation is performed with \code{optimx()} using control options specified in \code{gevreg_control()}. By default optimization is carried out with method ``nlminb". If option \code{grad = FALSE}, ``Nelder-Mead" is used instead. If no starting values are supplied with \code{start}, the coefficients from \code{glm()} are used as starting values for the location and shape parameter. For the scale parameter model a log-link function is applied to the offset of the coefficients of the \code{glm()} output. The absolute value is taken for the rest of the coefficients.
 
-The actual fitting function is \code{gevreg\_fit()}. As mentioned in Section~\ref{sec:ssm}, it maximises the sum of the log-likelihoods at each station. After a proper rescaling of the covariates, the actual fitting is achieved in two steps: if the "standard" negative log-likelihood returns \code{Inf}, a "squared" log-likelihood function is tried to be maximised. \code{gevreg\_fit()} has a matrix interface and returns an unclassed list. 
+The actual fitting function is \code{gevreg\_fit()}. As mentioned in Section~\ref{sec:ssm}, it maximises the sum of the log-likelihoods at each station. After a proper rescaling of the covariates, the actual fitting is achieved in two steps: if the ``standard" negative log-likelihood returns \code{Inf}, a ``squared" log-likelihood function is tried to be maximised. \code{gevreg\_fit()} has a matrix interface and returns an unclassed list. 
 
-The object returned by \code{gevreg()} is a list, similar to "that of the "glm" objects. In addition, model frame, response and regressor matrices are returned if specified in the call to \code{gevreg()}.
+The object returned by \code{gevreg()} is a list, similar to that of the ``glm" objects. In addition, model frame, response and regressor matrices are returned if specified in the call to \code{gevreg()}.
 
 Note that in the current implementation \code{na.action = NULL} has to set explicitly. This will be corrected in a future version.
 
@@ -117,73 +118,134 @@ Note that in the current implementation \code{na.action = NULL} has to set expli
 \section{Example}
 \label{sec:example}
 
-In this Section Austrian sow depth data at 36 observation sites are used to fit a smooth spatial GEV model with \pkg{gevreg}. Then the \proglang{S}3 function \code{predict()} is applied to the fitted object to (1) generate "location" parameters at a grid, and (2) compute 50-year return levels of snow depth on that grid. 
+In this Section Austrian sow depth data at 36 observation sites are used to fit a smooth spatial GEV model with \pkg{gevreg}. Then the \proglang{S}3 function \code{predict()} is applied to the fitted object to (1) generate ``location" parameters at a grid, and (2) compute 50-year return levels of snow depth on that grid. 
 
-First, the \pkg{gevreg} package is loaded together with included Austrian snow depth data.
+First, the \pkg{gevreg} package is loaded together with included Austrian snow depth data. In addition the plot package \pkg{ggplot2} is loaded.
 %
 <<>>=
 library("gevreg")
-data("gevregdata", package = "gevreg")
-hs <- gevregdata$hs
-gev_params <- gevregdata$gev_params
-grid <- gevregdata$grid
+library("ggplot2")
+data("SnowAustria")
+data("SnowAustriaGEV")
+data("SnowAustriaMap")
+
+
 @
 %
-The datsaset \code{gevregdata} contains a list with three components. First, \code{gevregdata[["hs"]]} holds Austrian snow depth data as well as coordinates (longitude, latitude, altitude) in a data frame. The first column (the name "station" is mandatory) is a factor variable containg the levels 1 to 36. Column 2 (hs) contains snow depth maxima for 68 years per station, including NA's. Columns 3 to 5 (lon, lat, alt) are coordinates within the domain of Austria. Second, \code{gevregdata[["gev_params"]]} is a data frame with GEV parameters valid at the stations. The three columns "loc", "scale" and "shape" correspond to the location, scale and shape parameters locally estimated at the stations using function \code{gevmle} of package \CRANpkg{SpatialExtremes}. And third, a grid for plotting a map of extremes for the state of Tyrol, named \code{grid}. A plot of the geografical position of the stations and a histogram of station elevations reveal a good variance over Austria:
+The dataset \code{SnowAustria} contains a list with three components. First, \code{SnowAustria} holds Austrian snow depth data as well as coordinates (longitude, latitude, altitude) in a data frame. The first column (the name ``station" is mandatory) is a factor variable containg the levels 1 to 36. Column 2 (hs) contains snow depth maxima for 68 years per station, including NA's. Columns 3 to 5 (lon, lat, alt) are coordinates within the domain of Austria. Second, \code{SnowAustriaGEV} is a data frame with GEV parameters valid at the stations. The three columns ``loc", ``scale" and ``shape" correspond to the location, scale and shape parameters locally estimated at the stations using function \code{gevmle} of package \pkg{SpatialExtremes}. And third, a grid for plotting a map of extremes for the state of Tyrol, named \code{SnowAustriaMap}. Figure~\ref{fig:topo} shows the geographical position of the stations, revealing a good variance over Austria. 
 %
-<<>>=
-with(hs, plot(lon,lat))
-hist(hs$alt)
+<<fig = FALSE >>=
+ggplot(SnowAustria,aes(lon,lat,color=alt)) + 
+  geom_point(size = 4) + 
+  annotate("label",
+           x = c(11.3927,16.373),
+           y = c(47.2672,48.203),
+           label = c("Innsbruck","Wien"))
 @
 %
-A quick check of the snow depth values indicate indeed that they might exhibit a heavy tail, suited to be modeled with the GEV distribution:
+\begin{figure}[h!]
+\centering
+<<fig=TRUE, height=4,width=8,echo=FALSE >>=
+ggplot(SnowAustria,aes(lon,lat,color=alt)) + 
+  geom_point(size = 4) + 
+  annotate("label",
+           x = c(11.3927,16.373),
+           y = c(47.2672,48.203),
+           label = c("Innsbruck","Wien"))
+@
+\caption{Geographical distribution of stations used in dataset \code{SnowAustria}.}
+\label{fig:topo}
+\end{figure}
 %
-<<>>=
-hist(hs$hs)
+A quick check of the snow depth values indicate indeed that they might exhibit a heavy tail, suited to be modeled with the GEV distribution (Figure~\ref{fig:hist}):
+%
+<<fig = FALSE >>=
+ggplot(SnowAustria,aes(hs)) + 
+  geom_histogram(bins = 20) + 
+  labs(x = "height of snow [cm]")
 @
 %
-Exploring scatterplots of the GEV parameters against gepgrafical coordinates 
+\begin{figure}[h!]
+\centering
+<<fig=TRUE, height=3,width=5,echo = FALSE >>=
+ggplot(SnowAustria,aes(hs)) + 
+  geom_histogram(bins = 20) + 
+  labs(x = "height of snow [cm]")
+@
+\caption{The histogram of snowdepth values in dataset \code{SnowAustria} shows a heavy tail.}
+\label{fig:hist}
+\end{figure}
 %
-<<>>=
-df <- cbind(gev_params,data.frame(lon = unique(hs$lon), alt = unique(hs$alt)))
+Exploring scatterplots of the GEV parameters against geographical coordinates indicates some relationships, helpful for setting up the submodels for the GEV parameters (Figure~\ref{fig:scatter}):
+%
+<<fig = false>>=
+df <- cbind(SnowAustriaGEV,data.frame(lon = unique(SnowAustria$lon), alt = unique(SnowAustria$alt)))
 plot(df)
 @
 %
-indicates some relationships, helpful for setting up the submodels for the GEV parameters. From this we can set up a call to \code{gevreg()} as follows: 
+\begin{figure}
+\centering
+<<fig = TRUE, height=4,width=4>>=
+df <- cbind(SnowAustriaGEV,data.frame(lon = unique(SnowAustria$lon), alt = unique(SnowAustria$alt)))
+plot(df)
+@
+\caption{Relations between the GEV parameters and covariables lon and alt in the dataset \code{SnowAustria}, that can be used to set up the marginal models.}
+\label{fig:scatter}
+\end{figure}
+%
+From this we can set up a call to \code{gevreg()}. First, the location parameter is added as column to the data.frame SnowAustria as covariate:
 %
 <<>>=
-hs$loc <- as.numeric(rep(gev_params$loc,each=nrow(hs)/length(levels(hs$station))))
+SnowAustria$loc <- as.numeric(rep(SnowAustriaGEV$loc,each=nrow(SnowAustria)/length(levels(SnowAustria$station))))
+@
+%
+Then the function call is set up, using ``lon" and ``alt" as covariates for the location parameter, ``lat", ``alt" and the location parameter ``loc" as covariate for the scale parameter, and the longitude ``lon" as covariate for the shape parameter:
+%
+<<>>=
 m0 <- gevreg(formula = hs ~ lon + alt | lat + alt + loc | lon, 
-             data = hs, gev_params = gev_params, na.action = NULL)
+             data = SnowAustria, gev_params = SnowAustriaGEV, na.action = NULL)
+@
+%
+The fitted model summarizes as follows:
+%
+<<>>=
 print(m0)
 @
 %
-The full model from above can be compared with a simpler model. Taking e.g. a constant location parameter over the whole domain of Austria
+
+The full model from above can be compared with a simpler model. Taking e.g. a constant location parameter over the whole domain of Austria:
 %
 <<>>=
 m1 <- gevreg(formula = hs ~ 1 | loc | alt, 
-             data = hs, gev_params = gev_params, na.action = NULL)
+             data = SnowAustria, gev_params = SnowAustriaGEV, na.action = NULL)
+@
+%
+But as expected, this leads to a worse fitting performance, as can be seen by comparing the AIC and the maximised likelihood:
+%
+<<>>=
 cbind(AIC(m0,m1),loglik=c(logLik(m0),logLik(m1)))
 @
 %
-leads to a worse fitting performance.
-
-Applying the \proglang{S}3 function \code{predict} to the fitted \code{gevreg} object m0, return values on a grid can be computed. To get a map of extreme snow depths with a return peripod of 50 years one could use. The grid has to have a extra column with the covariate "loc":
+By applying the \proglang{S}3 function \code{predict} to the fitted \code{gevreg} object m0, return values on a grid can be computed. The grid has to have an extra column with the covariate ``loc". To get a map of extreme snow depths with a return peripod of 50 years on the grid provided by \code{SnowAustria}, one could use the following R-code, which results in Figure~\ref{fig:rlplot}:
 %
 <<>>=
-grid$loc <- predict(m0, type = "location", newdata = grid, at=1-1/50)
+SnowAustriaMap$loc <- predict(m0, type = "location", newdata = SnowAustriaMap, at=1-1/50)
 @
 %
-
+Results can then be plotted with ggplot:
 %
-<<>>=
+<<fig=FALSE>>=
 library("ggplot2")
 library("colorspace")
 values <- c(0,200,400,600,800)
-colors <- diverge_hcl(length(values), h = c(260, 0), c = 100, l = c(30, 90), power = 0.7)
-rl <- predict(m0, type = "quantile", newdata = grid, at=1-1/50)
+colors <- diverge_hcl(length(values), 
+                      h = c(260, 0), 
+                      c = 100, 
+                      l = c(30, 90), 
+                      power = 0.7)
+rl <- predict(m0, type = "quantile", newdata = SnowAustriaMap, at=1-1/50)
 rl.fact <- cut(rl,values,values[-1])
-ggplot(data.frame(grid,rl.fact),aes(lon,lat,color=rl.fact,fill=rl.fact)) +
+ggplot(data.frame(SnowAustriaMap,rl.fact),aes(lon,lat,color=rl.fact,fill=rl.fact)) +
   geom_point(shape=22, size=2.75) +
   scale_color_manual(values = colors[1:length(values)],
                      limits = values,
@@ -198,6 +260,38 @@ ggplot(data.frame(grid,rl.fact),aes(lon,lat,color=rl.fact,fill=rl.fact)) +
   annotate("text",x=11.4,y=47.267,label="Innsbruck",size=5,hjust=-0.2)
 @
 %
+\begin{figure}[h!]
+\centering
+<<fig=TRUE,width=10,height=5,echo=FALSE>>=
+library("ggplot2")
+library("colorspace")
+values <- c(0,200,400,600,800)
+colors <- diverge_hcl(length(values), 
+                      h = c(260, 0), 
+                      c = 100, 
+                      l = c(30, 90), 
+                      power = 0.7)
+rl <- predict(m0, type = "quantile", newdata = SnowAustriaMap, at=1-1/50)
+rl.fact <- cut(rl,values,values[-1])
+ggplot(data.frame(SnowAustriaMap,rl.fact),aes(lon,lat,color=rl.fact,fill=rl.fact)) +
+  geom_point(shape=22, size=2.75) +
+  scale_color_manual(values = colors[1:length(values)],
+                     limits = values,
+                     breaks = rev(values[-1])) +
+  scale_fill_manual(values = colors[1:length(values)],
+                    limits = values,
+                    breaks = rev(values[-1])) +
+  guides(fill = guide_legend("50-year Snow Depth [cm]"),
+         title.hjust = 0.5,
+         color = FALSE) +
+  annotate("point",x=11.393,y=47.267,shape=4,size=5,stroke=0.3) +
+  annotate("text",x=11.4,y=47.267,label="Innsbruck",size=5,hjust=-0.2)
+@
+\caption{50-year snow depth return levels computed with a smooth GEV model. A 50-year return level of up to 200~cm is modeled for the Inn valley. The high altitudes show larger extremes. }
+\label{fig:rlplot}
+\end{figure}
+%
+
 
 
 
@@ -207,7 +301,7 @@ ggplot(data.frame(grid,rl.fact),aes(lon,lat,color=rl.fact,fill=rl.fact)) +
 \section{Summary}
 \label{sec:summary}
 
-The spatial modeling of extremes has a broad spectrum of application e.g. in Meteorology and Climatology. While there exist other approaches like max-stable processes, which account for the spatial extremal dependence as well, smooth spatial modeling can be a viable alternative. If ones focus lies more on exact margins, than on risk modeling, the package \code{gevreg} can easiyl be used to compute spatial quantiles of GEV distributed extremes. The use of the package was illustrated with a return level map of snow depths of the region of Tyrol.
+The spatial modeling of extremes has a broad spectrum of application e.g. in Meteorology and Climatology. While there exist other approaches like max-stable processes, which account for the spatial extremal dependence as well, smooth spatial modeling can be a viable alternative. If ones focus lies more on exact margins, than on risk modeling, the package \code{gevreg} can easily be used to compute spatial quantiles of GEV distributed extremes. The use of the package was illustrated with a return level map of snow depths of the region of Tyrol.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % thanks
