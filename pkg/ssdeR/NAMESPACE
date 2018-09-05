@@ -1,0 +1,42 @@
+import("maxLik" )
+import("sandwich")
+import("fBasics")
+import("VGAM")
+import("zoo")
+import("mvtnorm")
+import("Formula")
+import("MASS")
+
+
+importFrom( "miscTools", "coefTable" )
+importFrom( "miscTools", "nObs" )
+importFrom( "miscTools", "nParam" )
+importFrom( "systemfit", "systemfit" )
+importFrom( "utils", "tail" )
+importFrom("stats", ".getXlevels", "as.formula", "binomial",
+             "delete.response", "frequency", "glm.fit", "is.ts",
+             "model.weights", "na.pass", "naresid", "printCoefmat",
+             "quantile", "start", "ts", "pnorm", "dnorm")
+
+
+
+export(
+  "ssdeR",
+  "ssdeR.control",
+  "marginal.effects.ssdeR")
+
+S3method("fitted", "ssdeR")
+S3method("predict", "ssdeR")
+S3method("estfun", "ssdeR")
+S3method("fitted", "ssdeR")
+S3method("logLik", "ssdeR")
+S3method("model.matrix", "ssdeR")
+S3method("predict", "ssdeR")
+S3method("print", "ssdeR")
+S3method("summary", "ssdeR")
+S3method("print", "summary.ssdeR")
+S3method("terms", "ssdeR")
+S3method("vcov", "ssdeR")
+S3method("nobs", "ssdeR")
+
+

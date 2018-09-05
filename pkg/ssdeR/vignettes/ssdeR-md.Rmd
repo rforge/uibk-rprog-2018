@@ -1,0 +1,183 @@
+---
+title: "Sample Selection Models with a Common Dummy Endogenous Regressor in Simultaneous Equations"
+author: "[Michael Brottrager]"
+date: 2018-08-30
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Sample Selection Models with a Common Dummy Endogenous Regressor in Simultaneous Equations}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteDepends{ssdeR}
+  %\VignetteKeywords{sample selection, regression}
+  %\VignettePackage{ssdeR}
+---
+
+```{r preliminaries, echo = FALSE, message = FALSE, results = "hide"}
+library("ssdeR")
+```
+
+# Introduction
+
+The [`ssdeR`](https://R-Forge.R-project.org/projects/uibk-rprog-2018/) package provides a estimation function for sample selection models where a common dummy endogenous regressor appears both in the selection equation and in the censored equation. This model is analyzed in the framework of an endogenous switching model. Following Kim (2006), a simple two-step estimator is used for this model, which is easy to implement and numerically robust compared to other methods. 
+
+For an in depth derivation of the statistical framework, readers are advised considering [Kim (2006)](https://ac.els-cdn.com/S0165176505004106/1-s2.0-S0165176505004106-main.pdf?_tid=2a36f136-e81f-43bc-b25d-e33ed453c869&acdnat=1536147883_e0e447dddb0def155f6ffc3d32167fe2), as this *vignette* mainly focuses on the application of the [`ssdeR`](https://R-Forge.R-project.org/projects/uibk-rprog-2018/) package to the study of causal linkages considering climate, conflict and asylum seeking flow presented in Abel et al. (2018).
+
+------
+
+# Implementation
+
+As usual in many other regression packages for R [@R], the main model fitting function `ssdeR()`
+uses a formula-based interface and returns an (S3) object of class `ssdeR`:
+
+```
+ssdeR(formula, treatment, selection, data, subset,
+      na.action = FALSE, weights, cluster = NULL,
+      print.level = 0, control = ssdeR.control(...),
+      model = TRUE, x = FALSE, y = FALSE, ...)
+```
+A number of standard S3 methods are provided:
+
+| Method          | Description                                                                          |
+|:----------------|:-------------------------------------------------------------------------------------|
+| `print()`       | Simple printed display with coefficients                                             |
+| `summary()`     | Standard regression summary; returns `summary.htobit` object (with `print()` method) |
+| `vcov()`        | Associated covariance matrix                                                         |
+| `predict()`     | (Different types of) predictions for new data                                        |
+| `fitted()`      | Fitted values for observed data                                                      |
+| `terms()`       | Extract terms                                                                        |
+| `model.matrix()`| Extract model matrix (or matrices)                                                   |
+| `nobs()`        | Extract number of observations                                                       |
+| `logLik()`      | Extract fitted log-likelihood                                                        |
+| `estfun()`      | Extract estimating functions (= gradient contributions) for `sandwich` covariances   |
+
+
+Due to these methods a number of useful utilities work automatically, e.g., `AIC()`, `BIC()`,
+`coeftest()` (`lmtest`), etc.
+
+------
+
+# Illustration
+To illustrate the package's use in practice, the [`ssdeR`](https://R-Forge.R-project.org/projects/uibk-rprog-2018/) package is applied to dyadic migration data in the context of Abel et al. (2018). As the paper is currently under revision, readers are recommended to directly contact <michael.brottrager@jku.at> for a current version of the paper including the detailed data description.
+
+```{r data}
+data(ConflictMigration, package="ssdeR")
+library(ssdeR)
+```
+
+This `data.frame` contains cross-sectional information about 24336 country-pairs capturing the period 2011-2015. 
+
+| Variable Name         | Description                                                                          |
+|:----------------------|:-------------------------------------------------------------------------------------|
+  | iso_i               |      ISO code of origin.|
+  | iso_j               |      ISO code of destination.|
+  | asylum_seekers_ij   |      log transformed number of asylum seekers from origin i in destination j.|
+  | conflict_i          |      Conflict in origin i indicated by any reported battle related deaths in that country.|
+  | isflow_ij           |      Non-zero flows between origin i and destination j.|
+  | stock_ij            |      log transformed stock of origin natives in destination j before observational period. (t-1)|
+  | dist_ij             |      Metric distance. (t-1)|
+  | comlang_ij          |      Common Language in both origin and destination (Indicator). (t-1)|
+  | colony_ij           |      Colonial relationship (Indicator). (t-1)|
+  | polity_i            |      normalized (0-1) PolityIV score. (t-1)|
+  | polity_j            |      normalized (0-1) PolityIV score. (t-1)|
+  | pop_i               |      log transformed origin population. (t-1)|
+  | pop_j               |      log transformed destination population. (t-1)|
+  | gdp_j               |      log transformed GDP in destination. (t-1)|
+  | diaspora_i          |      Origin diaspora outside. (t-1)|
+  | ethMRQ_i            |      Ethnic Fractionalization measurement. (t-1)|
+  | outmigration_i      |      log transformed total outmigration of of origin i. (t-1)|
+  | inmigration_j       |      log transformed total inmigration in to destination j. (t-1)|
+  | spei_i              |      12 month average SPEI index. (t-1)|
+  | battledeaths_i      |      log transformed battledeaths in i. (t-1)|
+
+
+Our modelling framework aims at assessing quantitatively the determinants of asylum seeking flows using a gravity equation setting similar to that proposed for bilateral migration data (Cohen et al., 2008) but addressing explicitly the statistical problems caused endogenous selection in origin-destination pairs and non-random treatments. In this sense, our statistical problem is similar to those often encountered in health care studies, where for example the enrollment in a healthcare maintenance organisation (treatment) affects a person’s decision on both whether to use healthcare at all (extensive margin) and how much to spend for healthcare (intensive margin), given a positive decision. In our setting, however, conflict (treatment) itself is not randomly ‘assigned’ across our population of origin countries, that is, we have to consider the treatment itself to be endogenous as well. As with the healthcare example given above, this treatment (conflict) potentially affects the probability that we observe non-zero flows between some origin-destination country pairs (extensive margin). In other words, we have to account for a selection of countries in sending out migrants to a certain country of destination. Furthermore, conflict potentially affects the number of migrants seeking asylum in some destination country. These figures, however, are only observed in the case of actual flows and thus have to be considered as being potentially (non-randomly) censored.
+
+This setting leaves us with three simultaneous equations, where two of them contain our common endogenous binary regressors (i.e. conflict onset). In order to estimate this framework of simultaneous equations, we apply a simple two-step estimation technique proposed by Kim (2006). Translated to our context, we are interested in the following sample selection model,
+
+$$
+\begin{aligned}
+c_i^* & = Z_{c,i}^{\prime} \gamma_1 + \epsilon_{c,i}, \quad c_i = I(c_i^*>0) \\
+s_{ij}^* & = Z_{s,ij}^{\prime} \gamma_2 + c_i \beta_2 + \epsilon_{s,ij} ,  \quad s_{ij} = I(s_{ij}^*>0) \\
+a_{ij}^* & = Z_{a,ij}^{\prime} \gamma_3 + c_i \beta_3 + \epsilon_{a,ij} ,  \quad a_{ij} = a_{ij}^*s_{ij} \\
+\end{aligned}
+$$
+
+where the first equation specifies the occurrence of conflict ($c_i = 1$) in country $i$, the second equation addresses whether a non-zero flow of asylum seeking applications takes place from country $i$ to country $j$ ($s_{ij}=1$) and the last equation models the size of the flow of applications in logs $a_{ij}$to destination country j for origin-destination pairs with non-trivial flows. $I(x)$is an indicator function taking the value one if x is true and zero otherwise and the exogenous controls for each one of the equations in the model are summarized in the vectors $Z_{c,i}, Z_{s,ij}$ and $Z_{a,ij}$ respectively. The error terms, $\epsilon_{c,i},\epsilon_{s,ij}$ and $\epsilon_{a,ij}$, are assumed jointly multivariate normal and potentially correlated, thus capturing the endogenous selection of origin countries that present non-zero asylum applications to destination countries. Following Kim (2006), this sample selection model with a common endogenous regressor in the selection equation and the censored outcome equation is estimated as a hybrid of the bivariate probit and the type-II Tobit model containing the common endogenous binary conflict indicator. This  implies that we have to control for the endogeneity caused by $c_i$ and the selection bias caused by the censoring indicator $s_{ij}$ at the same time.
+
+Instead of a simulation assisted Full Maximum Likelihood (FIML) approach, we follow Kim (2006) and employ a simple two-step estimation technique by first estimating the bivariate probit model with structural shift and further use the estimation results of this first stage as control functions for the censored outcome equation using a simple Generalized Method of Moments (GMM) estimator. This way we can interpret the model as a Type V-Tobit model with bivariate selection and parameter restrictions. This approach bears the advantage of being numerically robust and easy to implement since it relaxes the strong normality assumptions imposed when using the FIML approach.
+
+```{r estimation}
+
+ Results <- ssdeR(formula = asylum_seekers_ij ~ stock_ij + dist_ij + I(dist_ij^2) +
+                            comlang_ij + colony_ij  +
+                            polity_i + pop_i + polity_i + pop_i +
+                            gdp_j,
+                  treatment = conflict_i ~ battledeaths_i + spei_i +
+                            polity_i + I(polity_i^2) +
+                            diaspora_i + ethMRQ_i ,
+                  selection = isflow_ij ~ dist_ij + I(dist_ij^2) +
+                            outmigration_i + inmigration_j ,
+                            cluster = c("iso_i","iso_j"),
+                  data = ConflictMigration)
+
+ summary(Results)
+```
+
+
+To compute the (marginal) of both, the `treatment` and `selection` models, the [`ssdeR`](https://R-Forge.R-project.org/projects/uibk-rprog-2018/) provides the user with the `marginal.effects.ssdeR()` method.This method computes the marginal effects based on Mullahy, J. (2017).
+
+If option `model = "selection"` is chosen, `marginal.effects.ssdeR()` returns the marginal effects in the bivariate probit model.
+In case, `model = "treatment"`, the marginal effects computation reduces to simple probit marginal effects and in case `model = "outcome"`, simple 3rd-step parameter estimates are returned.
+
+As [`ssdeR`](https://R-Forge.R-project.org/projects/uibk-rprog-2018/) estimates a bivariate probit model with structural shift, `selection` model indirect effects are just the `treatment` model's direct effects.
+
+Standard errors are computed using the delta method.
+
+```{r margeff}
+marginal.effects.ssdeR(Results, "treatment")
+marginal.effects.ssdeR(Results, "selection")
+marginal.effects.ssdeR(Results, "outcome")
+```
+
+------
+
+# References
+Cameron, A. C. and Trivedi, P. K. (2005)
+  \emph{Microeconometrics: Methods and Applications},
+  Cambridge University Press.
+
+  Greene, W. H. (2003)
+  \emph{Econometric Analysis, Fifth Edition}, Prentice Hall.
+
+  Heckman, J. (1976)
+  The common structure of statistical models of
+  truncation, sample selection and limited dependent
+  variables and a simple estimator for such models,
+  \emph{Annals of Economic and Social Measurement},
+  5(4), p. 475-492.
+
+  Johnston, J. and J. DiNardo (1997)
+  \emph{Econometric Methods, Fourth Edition}, McGraw-Hill.
+
+  Lee, L., G. Maddala and R. Trost (1980)
+  Asymetric covariance matrices of two-stage probit and two-stage tobit
+  methods for simultaneous equations models with selectivity.
+  \emph{Econometrica}, 48, p. 491-503.
+
+  Mullahy, J. (2017) Marginal effects in multivariate probit models.  \emph{Empircal Economics}, 52: 447.
+
+  il Kim, K. (2006). Sample selection models with a common dummy endogenous regressor in simultaneous equations: A simple two-step estimation. \emph{Economics Letters}, 91(2), 280-286.
+
+
+  Petersen, S., G. Henningsen and A. Henningsen (2017)
+  \emph{Which Households Invest in Energy-Saving Home Improvements?
+  Evidence From a Danish Policy Intervention}.
+  Unpublished Manuscript.
+  Department of Management Engineering, Technical University of Denmark.
+
+  Toomet, O. and A. Henningsen, (2008)
+  Sample Selection Models in R: Package sampleSelection.
+  \emph{Journal of Statistical Software} 27(7),
+  \url{http://www.jstatsoft.org/v27/i07/}
+
+  Wooldridge, J. M. (2003)
+  \emph{Introductory Econometrics: A Modern Approach, 2e}, Thomson South-Western.}

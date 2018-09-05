@@ -1,0 +1,14 @@
+Package: ssdeR
+Type: Package
+Title: Sample Selection Models with a Common Dummy Endogenous Regressor in Simultaneous Equations
+Version: 0.1.0
+Depends: R (>= 3.0.0)
+Suggests: knitr, rmarkdown, lmtest, dplyr
+VignetteBuilder: knitr
+Authors@R: person("Michael", "Brottrager", email = "michael.brottrager@gmx.net",
+  role = c("aut", "cre"))
+Description: Estimates sample selection models where a common dummy endogenous regressor appears both in the selection equation and in the censored equation. We interpret this model as an endogenous switching model and develop a simple two step estimation procedure.
+License: GPL-2 | GPL-3
+Encoding: UTF-8
+LazyData: true
+Imports: miscTools, systemfit, Formula, VGAM, mvtnorm, maxLik, fBasics, sandwich, zoo, MASS
