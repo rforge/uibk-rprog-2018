@@ -218,7 +218,7 @@ dist_vonmises <- function(useC = FALSE, ncores = 1) {
   #  return(starteta)
   #}
 
-  startfun <- function(y, weights = NULL, solve_kappa = solve_kappa_Newton_Fourier) {
+  startfun <- function(y, weights = NULL, solve_kappa = "Newton-Fourier") {
     x <- cbind(cos(y), sin(y))
     if (is.null(weights) || (length(weights)==0L)) {
         xbar <- colMeans(x)
@@ -229,7 +229,13 @@ dist_vonmises <- function(useC = FALSE, ncores = 1) {
     rbar <- sqrt(sum(xbar^2))
 
     # Calling solver function (iteratively estimate kappa).
-    kappa <- do.call(solve_kappa, list(r = rbar, useC = useC, ncores = ncores))
+    if(solve_kappa == "Newton-Fourier"){
+      kappa <- do.call(solve_kappa_Newton_Fourier, list(r = rbar, useC = useC, ncores = ncores))
+    } else if(solve_kappa == "Uniroot"){
+      kappa <- do.call(solve_kappa_uniroot, list(r = rbar))
+    } else if(solve_kappa == "Banerjee_et_al_2005"){
+      kappa <- do.call(solve_kappa_Banerjee_et_al_2005, list(r = rbar))
+    }
 
     starteta <- c(tan(mu / 2), log(kappa))
     names(starteta) <- etanames

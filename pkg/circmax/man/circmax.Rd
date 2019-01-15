@@ -17,7 +17,7 @@ circmax(formula, data, subset, na.action,
 circmax_fit(x, y, z = NULL, control)
 
 circmax_control(maxit = 5000, start = NULL, method = "Nelder-Mead",
-  solve_kappa = solve_kappa_Newton_Fourier, 
+  solve_kappa = "Newton-Fourier", 
   gradient = FALSE, hessian = TRUE, \dots)
 }
 \arguments{
@@ -42,8 +42,8 @@ circmax_control(maxit = 5000, start = NULL, method = "Nelder-Mead",
   \item{control, maxit, start}{a list of control parameters passed to \code{\link[stats]{optim}}.}
   \item{method}{The \code{method} to be used for optimization.}
   \item{solve_kappa}{Which kappa solver should be used for the starting values for kappa.
-    By default a Newton Fourier is used (\code{solve_kappa_Newton_Fourier}). Alternatively,
-    a uniroot provides a safe option (\code{solve_kappa_uniroot}) or code{solve_kappa_Banerjee_et_al_2005}
+    By default a Newton Fourier is used (\code{"Newton-Fourier"}). Alternatively,
+    a uniroot provides a safe option (\code{"Uniroot"}) or code{"Banerjee_et_al_2005"}
     provides a quick approximation).}
   \item{gradient}{logical. Should gradients be used for optimization? If \code{TRUE},
     the default \code{method} is \code{"BFGS"}. Otherwise \code{method = "Nelder-Mead"}

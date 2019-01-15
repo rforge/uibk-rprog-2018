@@ -60,7 +60,7 @@ circmax <- function(formula, data, subset, na.action,
 }
 
 circmax_control <- function(maxit = 5000, start = NULL, method = "Nelder-Mead", 
-  solve_kappa = solve_kappa_Newton_Fourier, gradient = FALSE, hessian = TRUE, ...) {
+  solve_kappa = "Newton-Fourier", gradient = FALSE, hessian = TRUE, ...) {
 
   ## Extract control arguments
   ctrl <- c(

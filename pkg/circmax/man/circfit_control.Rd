@@ -8,12 +8,12 @@
   to \code{\link{optim}}.
 }
 \usage{
-circfit_control(solve_kappa = solve_kappa_Newton_Fourier, useC = FALSE, ncores = 1, ...)
+circfit_control(solve_kappa = "Newton-Fourier", useC = FALSE, ncores = 1, ...)
 }
 \arguments{
   \item{solve_kappa}{Which kappa solver should be used for the starting values for kappa.
-    By default a Newton Fourier is used (\code{solve_kappa_Newton_Fourier}). Alternatively,
-    a uniroot provides a safe option (\code{solve_kappa_uniroot}) or \code{solve_kappa_Banerjee_et_al_2005}
+    By default a "Newton-Fourier" is used. Alternatively,
+    a "Uniroot" provides a safe option and "Banerjee_et_al_2005"
     provides a quick approximation.}
   \item{useC}{Should score function and solver be calculated in C?}
   \item{ncores}{If useC = TRUE, number of cores for parallelization with openMP.}
