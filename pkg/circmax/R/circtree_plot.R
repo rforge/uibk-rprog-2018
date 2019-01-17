@@ -15,7 +15,16 @@ plot.circtree <- function(x, terminal_panel = node_circular,
 
 
 plot_circular <- function(X, coefs = NULL, stack = 10, cex = 0.8, label = TRUE, 
-  circlab = c('$0$', '$\\pi/2$', '$\\pi$','$3/2\\pi$'), polygons = TRUE, rug = TRUE, kernel_density = FALSE){
+  circlab = c('$0$', '$\\pi/2$', '$\\pi$','$3/2\\pi$'), polygons = TRUE, rug = TRUE, 
+  kernel_density = FALSE, type = c("mathematical", "geographics")){
+
+  type <- match.arg(type)
+
+  ## Convert to meteorological wind direction
+  if(type == "geographics"){
+    X <- (-(X - pi/2)) %% (2 * pi)
+    circlab = c('E', 'N', 'W','S')
+  }
 
   # Empty Plot
   par(mar = c(0, 0, 0, 0) + 0., cex = cex)
