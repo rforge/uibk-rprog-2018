@@ -23,6 +23,7 @@ plot_circular <- function(X, coefs = NULL, stack = 10, cex = 0.8, label = TRUE,
   ## Convert to meteorological wind direction
   if(type == "geographics"){
     X <- (-(X - pi/2)) %% (2 * pi)
+    coefs[1] <- (-(coefs[1] - pi/2)) %% (2 * pi)
     circlab = c('E', 'N', 'W','S')
   }
 

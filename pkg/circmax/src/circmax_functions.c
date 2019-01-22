@@ -504,7 +504,7 @@ SEXP circ_score(SEXP y, SEXP eta, SEXP weights, SEXP sum, SEXP ncores) {
         double smu = 0., skappa = 0.;
         #pragma omp parallel
         {
-            #pragma omp for reduction(+:smu +:skappa)
+            #pragma omp for reduction(+:smu,skappa)
             for ( i = 0; i < length(y); i++ ) {
                 smu    += sin(yptr[i] - mu) * M1; // mu
                 skappa += kappa * ( cos(yptr[i] - mu) - BE ); // kappa
