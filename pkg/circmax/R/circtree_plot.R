@@ -86,7 +86,8 @@ plot_circular <- function(X, coefs = NULL, stack = 10, cex = 0.8, label = TRUE,
 
   # Plot fitted density
   if(!is.null(coefs)){
-    arrows(0, 0, 0.5 * cos(coefs[1]), 0.5 * sin(coefs[1]), col = 2, length = 0.1, code = 2, lwd = 2)
+    arrows(0, 0, 0.5 * cos(coefs[1]), 0.5 * sin(coefs[1]), col = 2, length = 0, lwd = 2)
+    #arrows(0, 0, 0.5 * cos(coefs[1]), 0.5 * sin(coefs[1]), col = 2, length = 0.1, code = 2, lwd = 2)
     circular::plot.function.circular(function(x) 
       dvonmises(x, circular::circular(coefs[1]), coefs[2]), add = TRUE, col = 2, lty = 1, lwd = 1.5)
   }
