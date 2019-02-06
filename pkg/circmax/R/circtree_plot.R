@@ -95,7 +95,9 @@ plot_circular <- function(X, coefs = NULL, stack = 10, cex = 0.8, label = TRUE,
 
 
 node_circular <- function(obj, which = NULL, id = TRUE, pop = TRUE,
-  xlab = FALSE, ylab = FALSE, mainlab = NULL, ...){
+  xlab = FALSE, ylab = FALSE, mainlab = NULL, type = c("mathematical", "geographics"), ...){
+
+  type <- match.arg(type)
 
   ## obtain dependent variable
   y <- obj$fitted[["(response)"]]
@@ -136,14 +138,20 @@ node_circular <- function(obj, which = NULL, id = TRUE, pop = TRUE,
 
     if (is.null(mainlab)) { 
       mainlab <- if(id) {
-      function(id, nobs, mu, kappa) sprintf("Node %s (n = %s) \n mu = %s, kappa = %s", id, nobs, mu, kappa)
+      function(id, nobs, mu, kappa, type){
+        ## Convert to meteorological wind direction
+        if(type == "geographics"){
+          mu <- round(mu %% (2 * pi) * 180 / pi, 0)
+        }
+        sprintf("Node %s (n = %s) \n mu = %s, kappa = %s", id, nobs, mu, kappa)
+      }
       #function(id, nobs, mu, kappa) sprintf("Node %s (n = %s)", id, nobs)
       } else {
       function(id, nobs) sprintf("n = %s", nobs)
       }
     }
     if (is.function(mainlab)) {
-      mainlab <- mainlab(nid, node$info$object$ny, coefs[1], coefs[2])
+      mainlab <- mainlab(nid, node$info$object$ny, coefs[1], coefs[2], type)
     }
     grid::grid.text(mainlab, y = grid::unit(0.9, "npc"))
 
@@ -151,7 +159,7 @@ node_circular <- function(obj, which = NULL, id = TRUE, pop = TRUE,
     grid::seekViewport("plot")
 
     grid::grid.rect(gp = grid::gpar(fill = "transparent", col = 1), width = grid::unit(0.9, "npc"))
-    gridGraphics::grid.echo(function() plot_circular(y, coefs, ...), newpage = FALSE)
+    gridGraphics::grid.echo(function() plot_circular(y, coefs, type = type, ...), newpage = FALSE)
 
     if(ylab != "") grid::grid.text(ylab, y = grid::unit(0.5, "npc"), x = grid::unit(-2.5, "lines"), rot = 90)
     if(xlab != "") grid::grid.text(xlab, x = grid::unit(0.5, "npc"), y = grid::unit(-2, "lines"))         
