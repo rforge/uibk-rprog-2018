@@ -35,7 +35,7 @@ crps_vonmises <- function(y, mu, kappa, sum = FALSE) {
   rval <- sapply(seq_along(y), function(i){
 
     int_fun <- function(x) {
-      1 / pi * abs(cfC_vonMises(x, mu[i], kappa[i]) - exp((0+1i) * x * y[i]))^2 / x^2
+      1 / pi * abs(CharFun::cfC_vonMises(x, mu[i], kappa[i]) - exp((0+1i) * x * y[i]))^2 / x^2
     }
 
     crps <- integrate(int_fun, 0, Inf)$value
@@ -46,16 +46,16 @@ crps_vonmises <- function(y, mu, kappa, sum = FALSE) {
   return(rval)
 }
 
-## Testing
-grid <- expand.grid(mu = seq(0, 2 * pi, by = pi / 16), kappa = seq(0.1,10, by = 0.2))
-
-for(i in 1:nrow(grid)){
-  grid$crps[i] <- crps_vonmises(pi/2, mu = grid[i, "mu"], kappa = grid[i, "kappa"])
-}
-#bamlss::plot3d(grid, image = TRUE)
-mgrid <- matrix(grid$crps, nrow = 33)
-image(unique(grid$mu), unique(grid$kapp), mgrid, col = colorspace::sequential_hcl(31, "Oslo"),
-  xlab = "mu [rad]", ylab = "kappa")
+### Testing
+#grid <- expand.grid(mu = seq(0, 2 * pi, by = pi / 16), kappa = seq(0.1,10, by = 0.2))
+#
+#for(i in 1:nrow(grid)){
+#  grid$crps[i] <- crps_vonmises(pi/2, mu = grid[i, "mu"], kappa = grid[i, "kappa"])
+#}
+##bamlss::plot3d(grid, image = TRUE)
+#mgrid <- matrix(grid$crps, nrow = 33)
+#image(unique(grid$mu), unique(grid$kapp), mgrid, col = colorspace::sequential_hcl(31, "Oslo"),
+#  xlab = "mu [rad]", ylab = "kappa")
 
 #test <- crps_vonmises(rep(pi/2, nrow(grid)), mu = grid[, "mu"], kappa = grid[,"kappa"])
 
