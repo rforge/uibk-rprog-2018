@@ -27,15 +27,18 @@ crps_vonmises <- function(y, mu, kappa, sum = FALSE) {
 
   require(CharFun)
 
-  if(!is.atomic(c(y, mu, kappa)) && is.numeric(c(y, mu, kappa))) 
+  if(!inherits(y, c("numeric", "integer")) || !inherits(mu, c("numeric", "integer")) ||
+    !inherits(kappa, c("numeric", "integer"))) {
     stop("Input 'y', 'mu', and 'kappa' must be numeric vectors...")
-  if(!(length(y) == length(mu) && length(mu) == length(kappa))) 
-    stop("Lengths of 'y', 'mu', and 'kappa' do not match...")
+  }
+
+  dat <- data.frame("y" = y, "mu" = mu, "kappa" = kappa)
   
-  rval <- sapply(seq_along(y), function(i){
+  rval <- sapply(1:nrow(dat), function(i){
 
     int_fun <- function(x) {
-      1 / pi * abs(CharFun::cfC_vonMises(x, mu[i], kappa[i]) - exp((0+1i) * x * y[i]))^2 / x^2
+      1 / pi * abs(CharFun::cfC_vonMises(x, dat[i, "mu"], dat[i, "kappa"]) - 
+        exp((0+1i) * x * dat[i, "y"]))^2 / x^2
     }
 
     crps <- integrate(int_fun, 0, Inf)$value
@@ -56,7 +59,7 @@ crps_vonmises <- function(y, mu, kappa, sum = FALSE) {
 #mgrid <- matrix(grid$crps, nrow = 33)
 #image(unique(grid$mu), unique(grid$kapp), mgrid, col = colorspace::sequential_hcl(31, "Oslo"),
 #  xlab = "mu [rad]", ylab = "kappa")
-
+#
 #test <- crps_vonmises(rep(pi/2, nrow(grid)), mu = grid[, "mu"], kappa = grid[,"kappa"])
 
 
