@@ -8,7 +8,7 @@ Data on budget shares of alcohol and tobacco for 2724 Belgian households,
 taken from the Belgian household budget survey of 1995/96. 
 }
 
-\usage{data("AlcoholTobacco", package = "htobit")}
+\usage{data("AlcoholTobacco", package = "htobit2018")}
 
 \format{
 A data frame containing 2724 observations on 9 variables.
@@ -37,7 +37,7 @@ Verbeek, M. (2004). \emph{A Guide to Modern Econometrics}, 2nd ed. Chichester, U
 }
 
 \examples{
-data("AlcoholTobacco", package = "htobit")
+data("AlcoholTobacco", package = "htobit2018")
 
 ## homoscedastic tobit model for budget share of alcohol
 ma <- htobit(alcohol ~ (age + adults) * log(expenditure) + oldkids + youngkids,

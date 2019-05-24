@@ -5,15 +5,15 @@ date: 2017-06-13
 output: rmarkdown::html_vignette
 bibliography: htobit.bib
 vignette: >
-  %\VignetteIndexEntry{Heteroscedastic Tobit Regression}
+  %\VignetteIndexEntry{Heteroscedastic Tobit Regression (Markdown)}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteDepends{htobit, car, crch, lmtest, memisc}
+  %\VignetteDepends{htobit2018, car, crch, lmtest, memisc}
   %\VignetteKeywords{heteroscedastic tobit, regression, R}
-  %\VignettePackage{htobit}
+  %\VignettePackage{htobit2018}
 ---
 
 ```{r preliminaries, echo = FALSE, message = FALSE, results = "hide"}
-library("htobit")
+library("htobit2018")
 library("car")
 library("crch")
 library("lmtest")
@@ -22,7 +22,7 @@ library("memisc")
 
 # Introduction
 
-The [`htobit`](https://R-Forge.R-project.org/projects/uibk-rprog-2017/) package
+The [`htobit2018`](https://R-Forge.R-project.org/projects/uibk-rprog-2018/) package
 fits tobit regression models with conditional heteroscedasticy using maximum
 likelihood estimation. The model assumes an underlying latent Gaussian variable
 
@@ -42,7 +42,7 @@ i.e., they can be identical, overlapping or completely different or just includi
 
 
 See also @crch for a more detailed introduction to this model class as well as
-a better implementation in the package `crch`. The main purpose of `htobit` is
+a better implementation in the package `crch`. The main purpose of `htobit2018` is
 to illustrate how to create such a package _from scratch_.
   
 ------
@@ -97,8 +97,8 @@ data on budget shares of alcohol and tobacco for 2724 Belgian households
 be replicated by:
 
 ```{r verbeek}
-data("AlcoholTobacco", package = "htobit")
-library("htobit")
+data("AlcoholTobacco", package = "htobit2018")
+library("htobit2018")
 ma <- htobit(alcohol ~ (age + adults) * log(expenditure) + oldkids + youngkids, data = AlcoholTobacco)
 summary(ma)
 ```

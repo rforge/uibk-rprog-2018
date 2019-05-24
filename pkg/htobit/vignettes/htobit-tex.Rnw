@@ -10,7 +10,7 @@
 \Plainkeywords{heteroscedastic tobit, regression, R}
 
 \Abstract{
-  The \pkg{htobit} package (\url{https://R-Forge.R-project.org/projects/uibk-rprog-2017/})
+  The \pkg{htobit2018} package (\url{https://R-Forge.R-project.org/projects/uibk-rprog-2018/})
   fits tobit regression models with conditional heteroscedasticy using maximum
   likelihood estimation. A brief overview of the package is provided, along
   with some illustrations and a replication of results from the \pkg{crch} package.
@@ -29,15 +29,15 @@
 
 %% Sweave/vignette information and metadata
 %% need no \usepackage{Sweave}
-%\VignetteIndexEntry{Heteroscedastic Tobit Regression}
+%\VignetteIndexEntry{Heteroscedastic Tobit Regression (LaTeX)}
 %\VignetteEngine{Sweave}
-%\VignetteDepends{htobit, car, crch, lmtest, memisc}
+%\VignetteDepends{htobit2018, car, crch, lmtest, memisc}
 %\VignetteKeywords{heteroscedastic tobit, regression, R}
-%\VignettePackage{htobit}
+%\VignettePackage{htobit2018}
 
 <<preliminaries, echo=FALSE, results=hide>>=
 options(width = 70, prompt = "R> ", continue = "+  ")
-library("htobit")
+library("htobit2018")
 library("car")
 library("crch")
 library("lmtest")
@@ -64,7 +64,7 @@ where the regressor vectors $x_i$ and $z_i$ can be set up without restrictions,
 i.e., they can be identical, overlapping or completely different or just including an intercept, etc.
 
 See also \cite{crch} for a more detailed introduction to this model class as well as
-a better implementation in the package \pkg{crch}. The main purpose of \pkg{htobit} is
+a better implementation in the package \pkg{crch}. The main purpose of \pkg{htobit2018} is
 to illustrate how to create such a package \emph{from scratch}.
 
 
@@ -123,8 +123,8 @@ data on budget shares of alcohol and tobacco for 2724 Belgian households
 be replicated by:
 
 <<verbeek>>=
-data("AlcoholTobacco", package = "htobit")
-library("htobit")
+data("AlcoholTobacco", package = "htobit2018")
+library("htobit2018")
 ma <- htobit(alcohol ~ (age + adults) * log(expenditure) + oldkids + youngkids,
   data = AlcoholTobacco)
 summary(ma)
@@ -185,7 +185,7 @@ mtable("htobit" = ma3, "crch" = ca3)
 <<mtable-latex, echo=FALSE, results=tex>>=
 toLatex(mtable("htobit" = ma3, "crch" = ca3))
 @
-\caption{\label{tab:mtable} Replication of \pkg{crch} results using \pkg{htobit}.}
+\caption{\label{tab:mtable} Replication of \pkg{crch} results using \pkg{htobit2018}.}
 \end{table}
 
 
