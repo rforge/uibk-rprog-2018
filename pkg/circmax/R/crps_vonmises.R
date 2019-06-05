@@ -6,7 +6,7 @@
 # - PURPOSE: Circular CRPS (von Mises) based on numeric integration using
 #            the charististic equation
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2019-06-05 on thinkmoritz
+# - L@ST MODIFIED: 2019-06-06 on thinkmoritz
 # -------------------------------------------------------------------
 
 ### Function
@@ -37,7 +37,8 @@ crps_vonmises <- function(y, mu, kappa, sum = FALSE) {
 
   dat <- data.frame("y" = y, "mu" = mu, "kappa" = kappa)
 
-  idx <- which.min(abs(dat$mu + c(-2 * pi, 0, 2 * pi) - dat$y))
+  idx <- apply(abs(matrix(dat$mu, ncol = 3, nrow = nrow(dat), byrow = FALSE) 
+    + c(-2 * pi, 0, 2 * pi) - dat$y), 1, which.min)
   dat$mu <- dat$mu + c(-2 * pi, 0, 2 * pi)[idx]
   
   rval <- sapply(1:nrow(dat), function(i){
