@@ -18,6 +18,7 @@ export("circtree")
 export("circfit")
 export("circfit_control")
 export("circtree_simulate")
+export("crps_vonmises")
 
 ## Methods for circmax
 S3method("coef", "circmax")

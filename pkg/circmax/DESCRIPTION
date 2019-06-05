@@ -5,6 +5,7 @@ Authors@R: person(given = "Moritz N.", family = "Lang", role = c("aut", "cre"), 
 Description: Circular regression with maximum likelihood estimation and regression trees for a circular response.
 Depends: R (>= 3.4.0)
 License: GPL-2 | GPL-3
-Imports: stats, circular, Formula, partykit, movMF, colorspace, shiny, gridGraphics, grDevices, sandwich
+Imports: stats, circular, Formula, partykit, movMF, colorspace, shiny, gridGraphics, grDevices, sandwich,
+  CharFun
 Suggests: disttree, bamlss, testthat, latex2exp, methods
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
