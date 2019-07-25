@@ -169,7 +169,7 @@ dist_vonmises <- function(useC = FALSE, ncores = 1) {
     be1 <- besselI(par[2], nu = 1, expon.scaled = TRUE)
     be2 <- besselI(par[2], nu = 2, expon.scaled = TRUE)
     d2ld.etasigma2 <- sum(weights * drop(par[2] *
-      (cos(y - par[1]) + (-2 * be0 * be1  + be0^2 + be2 * be0 - 2 * be1^2)/(2 * be0^2))), na.rm = TRUE)
+      (cos(y - par[1]) - be1 / be0) + par[2]^2 * ((2 * be1^2 - be0^2 - be2 * be0) / (2 * be0^2))), na.rm = TRUE)
 
     # par <- c(eta[1], exp(eta[2]))                           
     # d2ld.etamu2 <- sum(weights * rep.int(-1/par[2]^2, ny))

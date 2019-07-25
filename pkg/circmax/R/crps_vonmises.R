@@ -6,7 +6,7 @@
 # - PURPOSE: Circular CRPS (von Mises) based on numeric integration using
 #            the charististic equation
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2019-06-06 on thinkmoritz
+# - L@ST MODIFIED: 2019-07-24 on thinkmoritz
 # -------------------------------------------------------------------
 
 ### Function
@@ -55,6 +55,42 @@ crps_vonmises <- function(y, mu, kappa, sum = FALSE) {
   if(sum) rval <- sum(rval)
   return(rval)
 }
+
+### Function
+#crps_vonmises_new <- function(y, mu, kappa, sum = FALSE) {
+#
+#  if(any(y < -pi) || any(y > pi) || any(mu < -pi) || any(mu > pi) || any(kappa < 0 ))
+#    stop("y and mu must be in the interval of [-pi, pi], and kappa must be non negative!") 
+#
+#  require(CharFun)
+#
+#  if(!inherits(y, c("numeric", "integer")) || !inherits(mu, c("numeric", "integer")) ||
+#    !inherits(kappa, c("numeric", "integer"))) {
+#    stop("Input 'y', 'mu', and 'kappa' must be numeric vectors...")
+#  }
+#
+#  dat <- data.frame("y" = y, "mu" = mu, "kappa" = kappa)
+#
+#  idx <- apply(abs(matrix(dat$mu, ncol = 3, nrow = nrow(dat), byrow = FALSE) 
+#    + c(-2 * pi, 0, 2 * pi) - dat$y), 1, which.min)
+#  dat$mu <- dat$mu + c(-2 * pi, 0, 2 * pi)[idx]
+#  
+#  rval <- sapply(1:nrow(dat), function(i){
+#
+#    int_fun <- function(x) {
+#      (circular::pvonmises(x, dat[i, "mu"], dat[i, "kappa"]) - as.numeric(dat[i, "y"] <= x))
+#    }
+#
+#    crps <- integrate(int_fun, -pi, pi)$value
+#    #browser(); curve(int_fun, from = -100, to = 100)
+#
+#    return(crps)
+#  })
+#
+#  if(sum) rval <- sum(rval)
+#  return(rval)
+#}
+
 
 ### Testing
 #grid <- expand.grid(mu = seq(0, 2 * pi, by = pi / 16), kappa = seq(0.1,10, by = 0.2))
