@@ -183,9 +183,10 @@ dist_vonmises <- function(useC = FALSE, ncores = 1) {
   }
 
   # CAUTION: Should the inverse links be on the parameters? And do the circular calls properly work?!
-  pdist <- function(q, eta) circular::pvonmises(q, mu = eta[1], kappa = eta[2])
-  qdist <- function(p, eta) circular::qvonmises(q, mu = eta[1], kappa = eta[2])
-  rdist <- function(n, eta) circular::rvonmises(n, mu = eta[1], kappa = eta[2])
+
+  pdist <- function(q, eta) circular::pvonmises(q, mu = 2 * atan(eta[1]), kappa = exp(eta[2]))
+  qdist <- function(p, eta) circular::qvonmises(q, mu = 2 * atan(eta[1]), kappa = exp(eta[2]))
+  rdist <- function(n, eta) circular::rvonmises(n, mu = 2 * atan(eta[1]), kappa = exp(eta[2]))
 
   # CAUTION: is the name important
   link <- c("tanhalf", "log")
