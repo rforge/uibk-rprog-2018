@@ -19,9 +19,6 @@ crps_vonmises(y, mu, kappa, sum = FALSE)
   \item{sum}{logical. Should the sum of the CRPS-values over all response values be returned.}
 }
 
-\details{
-  }
-
 \value{
 For \code{sum=TRUE} the sum of the CRPS-values of all response values is returned. Otherwise
 a vector of the same length as \code{y} with the observation-wise CRPS-values is returned.
