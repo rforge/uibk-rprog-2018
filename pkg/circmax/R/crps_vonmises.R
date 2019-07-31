@@ -23,7 +23,7 @@
 #}
 
 ##YEAR: 2017
-##COPYRIGHT HOLDER: Ľudmila Šimková
+##COPYRIGHT HOLDER: Ludmila Simkova
 ## Function cfC_vonMises() from Package 'CharFun'
 cfC_vonMises <- function(t, mu = 0, kappa = 1){
   szt <- dim(t)
