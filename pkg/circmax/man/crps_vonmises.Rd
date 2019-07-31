@@ -28,11 +28,12 @@ a vector of the same length as \code{y} with the observation-wise CRPS-values is
 }
 
 \examples{
-require("CircStats")
-y <- rvm(100, 0.5, 4)
-y[y>pi] <- y[y>pi]-2*pi
+set.seed(20190731)
+y <- rnorm(100, 0, 1)
+y[abs(y)>pi] <- 0
 testfit <- circfit(y)
-testcrps <- crps_vonmises(y, mu = testfit$coefficients[1], kappa = testfit$coefficients[2])
+testcrps <- crps_vonmises(y, mu = as.numeric(testfit$coefficients[1]), 
+kappa = as.numeric(testfit$coefficients[2]))
 }
 
 
