@@ -6,7 +6,7 @@
 # - PURPOSE: Circular CRPS (von Mises) based on numeric integration using
 #            the charististic equation
 # -------------------------------------------------------------------
-# - L@ST MODIFIED: 2019-07-24 on thinkmoritz
+# - L@ST MODIFIED: 2019-07-31 on thinkmoritz
 # -------------------------------------------------------------------
 
 ### Function
@@ -22,13 +22,27 @@
 #  return(rval)
 #}
 
+##YEAR: 2017
+##COPYRIGHT HOLDER: Ľudmila Šimková
+## Function cfC_vonMises() from Package 'CharFun'
+cfC_vonMises <- function(t, mu = 0, kappa = 1){
+  szt <- dim(t)
+  t <- c(t)
+  cf <- unlist(lapply(t, function(t) tryCatch((Bessel::BesselI(kappa, 
+      abs(t), TRUE)/Bessel::BesselI(kappa, 0, TRUE)) * exp((0+1i) * 
+      t * mu), error = function(e) 0)))
+  cf[t == 0] <- 1
+  dim(cf) <- szt
+  return(cf)
+}
+
+
+
 ## Function
 crps_vonmises <- function(y, mu, kappa, sum = FALSE) {
 
   if(any(y < -pi) || any(y > pi) || any(mu < -pi) || any(mu > pi) || any(kappa < 0 ))
     stop("y and mu must be in the interval of [-pi, pi], and kappa must be non negative!") 
-
-  require(CharFun)
 
   if(!inherits(y, c("numeric", "integer")) || !inherits(mu, c("numeric", "integer")) ||
     !inherits(kappa, c("numeric", "integer"))) {
@@ -44,7 +58,7 @@ crps_vonmises <- function(y, mu, kappa, sum = FALSE) {
   rval <- sapply(1:nrow(dat), function(i){
 
     int_fun <- function(x) {
-      1 / pi * abs(CharFun::cfC_vonMises(x, dat[i, "mu"], dat[i, "kappa"]) - 
+      1 / pi * abs(cfC_vonMises(x, dat[i, "mu"], dat[i, "kappa"]) - 
         exp((0+1i) * x * dat[i, "y"]))^2 / x^2
     }
 
